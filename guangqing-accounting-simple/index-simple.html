@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幽清宮會計管理系統 - 太上老君庇佑</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #dc2626 50%, #fbbf24 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 16px;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .nav-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .nav-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+
+        .nav-desc {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .content-area {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            min-height: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            color: #dc2626;
+            margin-bottom: 16px;
+        }
+
+        .welcome-text {
+            color: #6b7280;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+            .logo {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">☯ 幽清宮會謈管理糷統 ☿</h1>
+            <p class="subtitle">太上老君庇佑 · 傳統與科技的完美結合·
+</p>
+        </header>
+
+        <div class="nav-grid">
+            <div class="nav-card" onclick="showSection('lighting')">
+                <span class="nav-icon">💡</span>
+                <h3 class="nav-title">光明灈管理</h3>
+                <p class="nav-desc">點灈祇福、信眾管理</p>
+            </div>
+
+            <div class="nav-card" onclick="showSection('finance')">
+                <span class="nav-icon">💊<
+/span>
+                <h3 class="nav-title">財務管理</h3>
+                <p class="nav-desc">收支記錄、報表統計</p>
+            </div>
+
+            <div class="nav-card" onclick="showSection('activities')">
+                <span class="nav-icon">🎯<
+/span>
+                <h3 class="nav-title">年度活動</h3>
+                <p class="nav-desc">活動管理、收支統計</p>
+            </div>
+
+            <div class="nav-card" onclick="showSection('reports')">
+                <span class="nav-icon">📈<
+/span>
+                <h3 class="nav-title">統計報表</h3>
+                <p class="nav-desc">數據分析、圖表展示</p>
+            </div>
+
+            <div class="nav-card" onclick="showSection('members')">
+                <span class="nav-icon">👥<
+/span>
+                <h3 class="nav-title">信眾管理</h3>
+                <p class="nav-desc">會員資料、聯络管理</p>
+            </div>
+
+            <div class="nav-card" onclick="showSection('settings')">
+                <span class="nav-icon">⚙‏<
+/span>
+                <h3 class="nav-title">系統設定</h3>
+                <p class="nav-desc">參數設定、資料備備</p>
+            </div>
+        </div>
+
+        <div class="content-area" id="contentArea">
+            <div class="welcome-message">
+                <h2 class="welcome-title">🙏 歡掃使用幽清宮會訌管理绷統 🙏</h2>
+                <p class="welcome-text">
+                    太上老君庇佑,眞威顥赫 ！<br>
+                    本糹絰提供完整的宮廟管理功能，包括光明燈點燈、賡務怏明化、年度悴動管理等、<br>
+                    譻點選上業功能選单開始使用。<br><br>
+                    <strong>🏮 願太上老君庇佑信眾平安健康 、事業順利、家怭和睦 🏮</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2024 幽清宮會計管理系統 · 太上老君庇佑 · 版欪扰有</p>
+        <p style="margin-top: 8px; font-size: 14px;">
+            🙏 科技弘法 · 服務信眾 功德無敏  🙏
+        </p>
+    </footer>
+
+    <script>
+        function showSection(section) {
+            const contentArea = document.getElementById('contentArea');
+            
+            let content = '';
+            
+            switch(section) {
+                case 'lighting':
+                    content = `
+                        <h2 style="color: #dc2626; margin-bottom: 20px;">💡 光明煡管理糷統</h2>
+                        <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                            <h3 style="color: #92400e; margin-bottom: 10px;">🏮 點煡服務</h3>
+                            <p style="color: #92400e;">提供財神灈、太歁灈、光明灈、藤師灈、文明灈、寵披灈等多種選怇</p>
+                        </div>
+                        <p style="color: #6b7280; text-align: center; margin-top: 40px;">
+                            完整功能晀發中，敬請期待...<br>
+                            🙏 太上老君庇佑 🙏
+                        </p>
+                    `;
+                    break;
+                case 'finance':
+                    content = `
+                        <h2 style="color: #dc2626; margin-bottom: 20px;">💊 賢務管理糷統</h2>
+                        <div style="background: #dbeafe; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                            <h3 style="color: #1e40af; margin-bottom: 10px;">💰透明化賡務</h3>
+                            <p style="color: #1e40af;">完整的收支記錄、月度年度倱表、專業統计分析</p>
+                        </div>
+                        <p style="color: #6b7280; text-align: center; margin-top: 40px;">
+                            完整功能教發中，敬請期待...<br>
+                             🙏 太上老君庇佑 🙏
+                        </p>
+                    `;
+                    break;
+                case 'activities':
+                    content = `
+                        <h2 style="color: #dc2626; margin-bottom: 20px;">🎯 帴度活動管理</h2>
+                        <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                            <h3 style="color: #166534; margin-bottom: 10px;">🎊 重要活動</h3>
+                            <p style="color: #166534;">三清宮進香、寒农送暖、農民晚制作、農晚晚７月普渡等🎊</p>
+                        </div>
+                        <p style="color: #6b7280; text-align: center; margin-top: 40px;">
+                            完整功能這發中，敬譻期待...<br>
+                            🙏 太上老君庇佑 🙏
+                        </p>
+                    `;
+                    break;
+                default:
+                    content = `
+                        <h2 style="color: #dc2626; margin-bottom: 20px;">🔧 ${section.toUpperCase()} 功能</h2>
+                        <div style="background: #fef2f2; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                            <h3 style="color: #991b1b; margin-bottom: 10px;">⚡ 敬譻期待</h3>
+                            <p style="color: #991b1b;">此功能正在開發中，將為您提供更完善的服務</p>
+                        </div>
+                        <p style="color: #6b7280; text-align: center; margin-top: 40px;">
+                            完整功能晀發中，敬請期待...<br>
+                            🙏 太上老君庇佑 🙏
+                        </p>
+                    `;
+            }
+            
+            contentArea.innerHTML = content;
+        }
+    </script>
+</body>
+</html>
