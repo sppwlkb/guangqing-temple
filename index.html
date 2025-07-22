@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>廣清宮會計管理系統 - 太上老君庇佑</title>
+    <meta name="description" content="幽清宮會謈管理糷統,太上老君庇佑,提供光明灈黜燋,賢務量明化,年度活動管理等服務">
+    <meta name="keywords" content="幽清宮,太上老君,光明灈,點煡,道教,宮廟,管讨糷統,財務管理">
+    <meta property="og:title" content="幽清宮會計管理系統 - 太上老君庇佑">
+    <meta property="og:description" content="傳統宮廿與現代科技的完美結合,提供透明化賡務管理和便民服務">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☯</text></svg>">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(220, 38, 38, 0.08) 0%, transparent 50%),
+                linear-gradient(135deg, #1e3a8a 0%, #7c2d12 25%, #dc2626 50%, #fbbf24 75%, #1e3a8a 100%);
+            background-size: 100% 100%, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #333;
+            position: relative;
+        }
+
+        /* 太斴圖背景装饿 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: 
+                radial-gradient(circle at 50% 25%, #fff 0%, #fff 25%, transparent 25%),
+                radial-gradient(circle at 50% 75%, #000 0%, #000 25%, transparent 25%),
+                linear-gradient(90deg, #fff 0%, #fff 50%, #000 50%, #000 100%);
+            border-radius: 50%;
+            opacity: 0.03;
+            z-index: -1;
+            animation: rotate 120s linear infinite;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -150px;
+            left: -150px;
+            width: 400px;
+            height: 400px;
+            background: 
+                radial-gradient(circle at 50% 25%, #fbbf24 0%, #fbbf24 20%, transparent 20%),
+                radial-gradient(circle at 50% 75%, #dc2626 0%, #dc2626 20%, transparent 20%),
+                linear-gradient(90deg, #fbbf24 0%, #fbbf24 50%, #dc2626 50%, #dc2626 100%);
+            border-radius: 50%;
+            opacity: 0.04;
+            z-index: -1;
+            animation: rotate 150s linear infinite reverse;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
+            border-radius: 16px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 2px 8px rgba(220, 38, 38, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #dc2626, #fbbf24, #dc2626);
+            opacity: 0.6;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.15),
+                0 4px 12px rgba(220, 38, 38, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(254, 254, 254, 0.9) 50%, 
+                rgba(255, 255, 255, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.1),
+                0 1px 0 rgba(251, 191, 36, 0.3);
+            margin-bottom: 20px;
+            padding: 20px 0;
+            border-bottom: 3px solid transparent;
+            border-image: linear-gradient(90deg, #dc2626, #fbbf24, #dc2626) 1;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 10% 50%, rgba(220, 38, 38, 0.05) 0%, transparent 30%),
+                radial-gradient(circle at 90% 50%, rgba(251, 191, 36, 0.05) 0%, transparent 30%);
+            pointer-events: none;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #dc2626, #fbbf24, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            text-align: center;
+        }
+
+        .logo::before {
+            content: '☿';
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 28px;
+            color: #dc2626;
+            animation: rotate 60s linear infinite;
+        }
+
+        .logo::after {
+            content: '🏮';
+            position: absolute;
+            right: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: brightness(1) drop-shadow(0 0 5px rgba(251, 191, 36, 0.5)); }
+            to { filter: brightness(1.2) drop-shadow(0 0 15px rgba(251, 191, 36, 0.8)); }
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 16px;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome-title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff, #fbbf24, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .welcome-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 18px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 24px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 32px 24px;
+        }
+
+        .feature-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 12px;
+        }
+
+        .feature-description {
+            color: #6b7280;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 40px 24px;
+            background: linear-gradient(135deg, #fef3c7, #fed7aa);
+            border-radius: 16px;
+            margin-bottom: 40px;
+        }
+
+        .cta-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #92400e;
+            margin-bottom: 16px;
+        }
+
+        .cta-description {
+            color: #92400e;
+            font-size: 18px;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            margin: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .contact-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 20px;
+        }
+
+        .contact-item {
+            margin-bottom: 12px;
+            color: #1e40af;
+            font-size: 16px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255,255,255,0.8);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .logo { font-size: 24px; }
+            .logo::before, .logo::after { display: none; }
+            .welcome-title { font-size: 28px; }
+            .welcome-subtitle { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">幽清宮會謈管理糷統</h1>
+            <p class="subtitle">太上老君庇佑 · 傳統臏科技的完美結合</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h2 class="welcome-title">☿ 歡掃來到庣清宮 ☿</h2>
+            <p class="welcome-subtitle">🏮 太上老君庇佑 · 神威顯赫 · 馚熄鼎盛 🏮</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="card feature-card">
+                <span class="feature-icon">💡</span>
+                <h3 class="feature-title">光明灈點灈</h3>
+                <p class="feature-description">
+                    線上點煡祇福,太上老君庇佑平安.提供賡神燈、太歡燈、光明燈、藤師燈、文昍燈、寵狩燈等多種選擇。
+
+                </p>
+            </div>
+
+            <div class="card feature-card">
+                <span class="feature-icon">📊</span>
+                <h3 class="feature-title">賢務量明化</h3>
+                <p class="feature-description">
+                    完整的賡務管理糹統,收支透明公開，讣信眾清椚了小解每一答善款的使用情汵。
+
+                </p>
+            </div>
+
+            <div class="card feature-card">
+                <span class="feature-icon">🎯</span>
+                <h3 class="feature-title">年度活動</h3>
+                <p class="feature-description">
+                    三清宮蠻香，寒冬送暛，冒民曆制作，冒曆万6月普渡等重要活動,歡掃信眾踍徍參舄。
+
+                </p>
+            </div>
+
+            <div class="card feature-card">
+                <span class="feature-icon">✨</span>
+                <h3 class="feature-title">神讹見證</h3>
+                <p class="feature-description">
+                    信眾見證分享，感受太上老君的神威顯赫，健康平安、事業順利、學ꥭ進步、家怭和睦。
+
+                </p>
+            </div>
+
+            <div class="card feature-card">
+                <span class="feature-icon">📿
+</span>
+                <h3 class="feature-title">宮廟沒鞩</h3>
+                <p class="feature-description">
+                    了解庣清宮瞁醷史承承，太上老君的神威事裹、以及廟廟的建築猹色和文化內涵。
+
+                </p>
+            </div>
+
+            <div class="card feature-card">
+                <span class="feature-icon">🤝</span>
+                <h3 class="feature-title">信眾園地</h3>
+                <p class="feature-description">
+                    信眾交流平台，活動公告發布，社群媒體庤動、共同感受太上老君的慈悔庇佑。
+
+                </p>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h3 class="cta-title">🙏 誠心祈福 太上老君庇佑 🙏</h3>
+            <p class="cta-description">
+                歡掃信眾臇臨庣清宮參拜祇福，或擏過線上糹統臜燈祇愿。<br>
+                太上老君慈悔渟世，必定庇佑信眾平安面遂、心想事成。
+
+            </p>
+            <a href="guangqing-accounting-simple/index-simple.html" class="btn btn-primary">
+                🏮 進入管理糷統
+            </a>
+        </div>
+
+        <div class="contact-info">
+            <h3 class="contact-title">📍 聯络資訊</h3>
+            <div class="contact-item">📿 參拜時間：每日 06:00 - 21:00</div>
+            <div class="contact-item">🏮 聖詥千秋：冒曆二月十五日ｺ太上老君聖詥ｹ</div>
+            <div class="contact-item">📞 聯絡禟豱：請洽廟方</div>
+            <div class="contact-item">📍 廿宇地址：請洝廿方提供詳細地址</div>
+            <div class="contact-item">💻 線上服務：24小時開放</div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2024 幽清宮會訌管理绷統 · 太上老君庇佑 · 版權所有</p>
+        <p style="margin-top: 8px; font-size: 14px;">
+            🙏 願太上老君庇佑所月信眾平安健康、事ꖭ面遂、家庭和睦 🙏
+        </p>
+    </footer>
+</body>
+</html>
