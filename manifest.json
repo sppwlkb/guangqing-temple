@@ -35,8 +35,37 @@
   ],
   "features": [
     "收支記錄管理",
-    "智能提醒功能",
+    "智能提醒功能", 
     "財務報表分析",
-    "離線使用支援"
+    "離線使用支援",
+    "雲端同步",
+    "多設備同步",
+    "自定義類別管理"
+  ],
+  "shortcuts": [
+    {
+      "name": "快速記帳",
+      "short_name": "記帳",
+      "description": "快速新增收支記錄",
+      "url": "./index-enhanced.html?action=add",
+      "icons": [
+        {
+          "src": "icon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "查看報表",
+      "short_name": "報表",
+      "description": "查看財務報表",
+      "url": "./index-enhanced.html?page=reports",
+      "icons": [
+        {
+          "src": "icon.svg", 
+          "sizes": "96x96"
+        }
+      ]
+    }
   ]
 }

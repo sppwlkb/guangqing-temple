@@ -34,6 +34,9 @@
     <script src="https://unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script>
 
     <!-- 雲端同步服務 -->
+    <script src="firebase-config.js"></script>
+    <script src="offline-storage.js"></script>
+    <script src="cloud-sync-manager.js"></script>
     <script src="cloud-sync.js"></script>
 
     <!-- QR Code生成器 -->
@@ -2657,10 +2660,246 @@
                 gap: 12px;
             }
 
-            .category-actions {
-                align-self: flex-end;
-            }
-        }
+                         .category-actions {
+                 align-self: flex-end;
+             }
+         }
+
+         /* 雲端同步相關樣式 */
+         .sync-status {
+             display: flex;
+             align-items: center;
+             margin-right: 12px;
+             position: relative;
+         }
+
+         .sync-indicator {
+             display: flex;
+             align-items: center;
+             gap: 6px;
+             padding: 6px 12px;
+             border-radius: 20px;
+             cursor: pointer;
+             font-size: 12px;
+             font-weight: 500;
+             transition: all 0.2s ease;
+         }
+
+         .sync-status-online .sync-indicator {
+             background: #f0f9ff;
+             color: #1976d2;
+             border: 1px solid #e3f2fd;
+         }
+
+         .sync-status-offline .sync-indicator {
+             background: #fafafa;
+             color: #757575;
+             border: 1px solid #e0e0e0;
+         }
+
+         .sync-status-pending .sync-indicator {
+             background: #fff8e1;
+             color: #f57c00;
+             border: 1px solid #ffecb3;
+         }
+
+         .sync-status-syncing .sync-indicator {
+             background: #e8f5e8;
+             color: #388e3c;
+             border: 1px solid #c8e6c9;
+         }
+
+         .sync-icon {
+             font-size: 14px;
+         }
+
+         .pending-badge {
+             position: absolute;
+             top: -8px;
+             right: -8px;
+             background: #ff5722;
+             color: white;
+             border-radius: 10px;
+             padding: 2px 6px;
+             font-size: 10px;
+             font-weight: bold;
+             min-width: 16px;
+             text-align: center;
+         }
+
+         .user-status {
+             display: flex;
+             align-items: center;
+             gap: 6px;
+             padding: 6px 12px;
+             background: #f5f5f5;
+             border-radius: 20px;
+             cursor: pointer;
+             margin-right: 12px;
+             font-size: 12px;
+             transition: all 0.2s ease;
+         }
+
+         .user-status:hover {
+             background: #e0e0e0;
+         }
+
+         .user-icon {
+             font-size: 14px;
+         }
+
+         .user-name {
+             max-width: 100px;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             white-space: nowrap;
+         }
+
+         /* 認證對話框樣式 */
+         .auth-container {
+             min-height: 300px;
+         }
+
+         .auth-tabs {
+             display: flex;
+             border-bottom: 1px solid #e0e0e0;
+             margin-bottom: 20px;
+         }
+
+         .tab-btn {
+             flex: 1;
+             padding: 12px;
+             border: none;
+             background: transparent;
+             cursor: pointer;
+             font-size: 14px;
+             color: #666;
+             transition: all 0.2s ease;
+         }
+
+         .tab-btn.active {
+             color: #409EFF;
+             border-bottom: 2px solid #409EFF;
+             background: #f8f9fa;
+         }
+
+         .auth-form {
+             display: flex;
+             flex-direction: column;
+             gap: 16px;
+         }
+
+         .guest-mode {
+             text-align: center;
+             padding: 20px;
+         }
+
+         .guest-mode p {
+             margin-bottom: 20px;
+             color: #666;
+             line-height: 1.5;
+         }
+
+         /* 用戶資訊樣式 */
+         .user-info {
+             padding: 20px 0;
+         }
+
+         .user-profile {
+             display: flex;
+             align-items: center;
+             gap: 16px;
+             margin-bottom: 20px;
+             padding: 16px;
+             background: #f8f9fa;
+             border-radius: 8px;
+         }
+
+         .user-avatar {
+             width: 50px;
+             height: 50px;
+             border-radius: 50%;
+             background: #409EFF;
+             color: white;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             font-size: 20px;
+             font-weight: bold;
+         }
+
+         .user-details {
+             flex: 1;
+         }
+
+         .user-name {
+             font-size: 16px;
+             font-weight: 500;
+             color: #333;
+             margin-bottom: 4px;
+         }
+
+         .user-email {
+             font-size: 12px;
+             color: #666;
+         }
+
+         .user-actions {
+             display: flex;
+             gap: 12px;
+             justify-content: center;
+         }
+
+         /* 同步資訊樣式 */
+         .sync-info {
+             padding: 16px 0;
+         }
+
+         .info-item {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             padding: 8px 0;
+             border-bottom: 1px solid #f0f0f0;
+         }
+
+         .info-item:last-child {
+             border-bottom: none;
+         }
+
+         .info-label {
+             font-weight: 500;
+             color: #333;
+         }
+
+         .info-value {
+             color: #666;
+         }
+
+         .info-value.online {
+             color: #4CAF50;
+         }
+
+         .info-value.offline {
+             color: #f44336;
+         }
+
+         .sync-actions {
+             display: flex;
+             gap: 12px;
+             justify-content: center;
+             margin-top: 20px;
+         }
+
+         @media (max-width: 768px) {
+             .sync-status, .user-status {
+                 display: none;
+             }
+             
+             .header-actions {
+                 gap: 8px;
+             }
+         }
     </style>
 </head>
 <body>
@@ -2724,6 +2963,21 @@
                 </div>
 
                 <div class="header-actions">
+                    <!-- 雲端同步狀態 -->
+                    <div class="sync-status" :class="syncStatusClass">
+                        <div class="sync-indicator" @click="showSyncModal = true">
+                            <span class="sync-icon">{{ syncIcon }}</span>
+                            <span class="sync-text">{{ syncStatusText }}</span>
+                        </div>
+                        <div v-if="pendingChanges > 0" class="pending-badge">{{ pendingChanges }}</div>
+                    </div>
+                    
+                    <!-- 用戶狀態 -->
+                    <div class="user-status" @click="showUserModal = true">
+                        <span class="user-icon">👤</span>
+                        <span class="user-name">{{ currentUserName }}</span>
+                    </div>
+                    
                     <button class="btn btn-primary" @click="showAddModal = true" style="padding: 8px 12px; font-size: 14px;">
                         快速記帳
                     </button>
@@ -4154,6 +4408,154 @@
             <div class="notification-message">{{ currentNotification.message }}</div>
         </div>
 
+        <!-- 用戶認證對話框 -->
+        <div v-if="showUserModal" class="modal" @click.self="closeUserModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">{{ currentUser ? '用戶設定' : '登入/註冊' }}</div>
+                    <button class="close-btn" @click="closeUserModal">&times;</button>
+                </div>
+
+                <!-- 未登入狀態 -->
+                <div v-if="!currentUser" class="auth-container">
+                    <div class="auth-tabs">
+                        <button 
+                            :class="['tab-btn', { active: authTab === 'login' }]"
+                            @click="authTab = 'login'"
+                        >
+                            登入
+                        </button>
+                        <button 
+                            :class="['tab-btn', { active: authTab === 'register' }]"
+                            @click="authTab = 'register'"
+                        >
+                            註冊
+                        </button>
+                        <button 
+                            :class="['tab-btn', { active: authTab === 'guest' }]"
+                            @click="authTab = 'guest'"
+                        >
+                            訪客模式
+                        </button>
+                    </div>
+
+                    <!-- 登入表單 -->
+                    <form v-if="authTab === 'login'" @submit.prevent="loginUser" class="auth-form">
+                        <div class="form-group">
+                            <label class="form-label">電子郵件</label>
+                            <input v-model="authForm.email" type="email" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">密碼</label>
+                            <input v-model="authForm.password" type="password" class="form-input" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" :disabled="authLoading">
+                            {{ authLoading ? '登入中...' : '登入' }}
+                        </button>
+                    </form>
+
+                    <!-- 註冊表單 -->
+                    <form v-if="authTab === 'register'" @submit.prevent="registerUser" class="auth-form">
+                        <div class="form-group">
+                            <label class="form-label">宮廟名稱</label>
+                            <input v-model="authForm.displayName" type="text" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">電子郵件</label>
+                            <input v-model="authForm.email" type="email" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">密碼</label>
+                            <input v-model="authForm.password" type="password" class="form-input" minlength="6" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" :disabled="authLoading">
+                            {{ authLoading ? '註冊中...' : '註冊' }}
+                        </button>
+                    </form>
+
+                    <!-- 訪客模式 -->
+                    <div v-if="authTab === 'guest'" class="guest-mode">
+                        <p>訪客模式將使用匿名登入，資料會保存在雲端但無法跨設備同步。</p>
+                        <button @click="loginAnonymously" class="btn btn-secondary" :disabled="authLoading">
+                            {{ authLoading ? '登入中...' : '使用訪客模式' }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 已登入狀態 -->
+                <div v-else class="user-info">
+                    <div class="user-profile">
+                        <div class="user-avatar">{{ currentUser.displayName ? currentUser.displayName.charAt(0) : '👤' }}</div>
+                        <div class="user-details">
+                            <div class="user-name">{{ currentUser.displayName || '匿名用戶' }}</div>
+                            <div class="user-email">{{ currentUser.email || '訪客模式' }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-actions">
+                        <button @click="manualSync" class="btn btn-primary" :disabled="syncInProgress">
+                            {{ syncInProgress ? '同步中...' : '手動同步' }}
+                        </button>
+                        <button @click="logoutUser" class="btn btn-secondary">
+                            登出
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 同步狀態對話框 -->
+        <div v-if="showSyncModal" class="modal" @click.self="closeSyncModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">雲端同步狀態</div>
+                    <button class="close-btn" @click="closeSyncModal">&times;</button>
+                </div>
+
+                <div class="sync-info">
+                    <div class="info-item">
+                        <span class="info-label">網路狀態：</span>
+                        <span :class="['info-value', isOnline ? 'online' : 'offline']">
+                            {{ isOnline ? '🟢 已連線' : '🔴 離線' }}
+                        </span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">登入狀態：</span>
+                        <span class="info-value">
+                            {{ currentUser ? '✅ 已登入' : '❌ 未登入' }}
+                        </span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">最後同步：</span>
+                        <span class="info-value">{{ lastSyncFormatted }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">待同步變更：</span>
+                        <span class="info-value">{{ pendingChanges }} 個項目</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">即時同步：</span>
+                        <span class="info-value">
+                            {{ isRealtimeSync ? '🟢 已啟用' : '🔴 未啟用' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="sync-actions">
+                    <button @click="manualSync" class="btn btn-primary" :disabled="!currentUser || !isOnline || syncInProgress">
+                        {{ syncInProgress ? '同步中...' : '立即同步' }}
+                    </button>
+                    <button @click="forceResync" class="btn btn-warning" :disabled="!currentUser || !isOnline">
+                        強制重新同步
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- 類別管理對話框 -->
         <div v-if="showCategoryManagerModal" class="modal" @click.self="closeCategoryManagerModal">
             <div class="modal-content category-manager-modal">
@@ -5574,6 +5976,23 @@
                 const dragOverIndex = ref(null);
                 const categoryListRef = ref(null);
 
+                // 雲端同步相關變數
+                const showUserModal = ref(false);
+                const showSyncModal = ref(false);
+                const currentUser = ref(null);
+                const isOnline = ref(navigator.onLine);
+                const syncInProgress = ref(false);
+                const pendingChanges = ref(0);
+                const lastSyncFormatted = ref('從未同步');
+                const isRealtimeSync = ref(false);
+                const authTab = ref('login');
+                const authLoading = ref(false);
+                const authForm = ref({
+                    email: '',
+                    password: '',
+                    displayName: ''
+                });
+
                 // 當前類別列表（用於管理對話框）
                 const currentCategoryList = computed(() => {
                     if (currentCategoryType.value === 'income') {
@@ -5594,6 +6013,36 @@
                 // 計算屬性
                 const currentCategories = computed(() => {
                     return form.value.type === 'income' ? incomeCategories.value : expenseCategories.value;
+                });
+
+                // 雲端同步相關計算屬性
+                const currentUserName = computed(() => {
+                    if (!currentUser.value) return '未登入';
+                    return currentUser.value.displayName || currentUser.value.email || '匿名用戶';
+                });
+
+                const syncStatusClass = computed(() => {
+                    if (!currentUser.value) return 'sync-status-offline';
+                    if (syncInProgress.value) return 'sync-status-syncing';
+                    if (!isOnline.value) return 'sync-status-offline';
+                    if (pendingChanges.value > 0) return 'sync-status-pending';
+                    return 'sync-status-online';
+                });
+
+                const syncIcon = computed(() => {
+                    if (!currentUser.value) return '☁️';
+                    if (syncInProgress.value) return '🔄';
+                    if (!isOnline.value) return '📱';
+                    if (pendingChanges.value > 0) return '⏳';
+                    return '✅';
+                });
+
+                const syncStatusText = computed(() => {
+                    if (!currentUser.value) return '未登入';
+                    if (syncInProgress.value) return '同步中';
+                    if (!isOnline.value) return '離線模式';
+                    if (pendingChanges.value > 0) return `${pendingChanges.value}個待同步`;
+                    return '已同步';
                 });
                 
                 const modalTitle = computed(() => {
@@ -6080,25 +6529,213 @@
                     }
                 };
 
-                const loadCustomCategoriesFromStorage = () => {
+                const loadCustomCategoriesFromStorage = async () => {
                     try {
-                        const savedIncomeCategories = localStorage.getItem('custom-income-categories');
-                        const savedExpenseCategories = localStorage.getItem('custom-expense-categories');
-                        
-                        if (savedIncomeCategories) {
-                            customIncomeCategories.value = JSON.parse(savedIncomeCategories);
-                        }
-                        if (savedExpenseCategories) {
-                            customExpenseCategories.value = JSON.parse(savedExpenseCategories);
+                        // 優先從 IndexedDB 載入
+                        if (window.offlineStorage && window.offlineStorage.isInitialized) {
+                            const incomeCategories = await window.offlineStorage.getByIndex('categories', 'type', 'income');
+                            const expenseCategories = await window.offlineStorage.getByIndex('categories', 'type', 'expense');
+                            
+                            customIncomeCategories.value = incomeCategories || [];
+                            customExpenseCategories.value = expenseCategories || [];
+                        } else {
+                            // 降級到 localStorage
+                            const savedIncomeCategories = localStorage.getItem('custom-income-categories');
+                            const savedExpenseCategories = localStorage.getItem('custom-expense-categories');
+                            
+                            if (savedIncomeCategories) {
+                                customIncomeCategories.value = JSON.parse(savedIncomeCategories);
+                            }
+                            if (savedExpenseCategories) {
+                                customExpenseCategories.value = JSON.parse(savedExpenseCategories);
+                            }
                         }
                     } catch (error) {
                         console.error('載入自定義類別失敗:', error);
                     }
                 };
 
+                // 同步狀態更新方法
+                const updateSyncStatus = async () => {
+                    if (window.cloudSyncManager) {
+                        const status = await window.cloudSyncManager.getSyncStatus();
+                        pendingChanges.value = status.pendingChanges || 0;
+                        lastSyncFormatted.value = status.lastSyncFormatted || '從未同步';
+                        isRealtimeSync.value = status.isRealtimeSync || false;
+                        syncInProgress.value = status.syncInProgress || false;
+                    }
+                };
+
+                // 設置事件監聽器
+                const setupEventListeners = () => {
+                    // 監聽認證狀態變化
+                    window.addEventListener('authStateChanged', (event) => {
+                        currentUser.value = event.detail.user;
+                        updateSyncStatus();
+                    });
+
+                    // 監聽網路狀態變化
+                    window.addEventListener('connectionStateChanged', (event) => {
+                        isOnline.value = event.detail.isOnline;
+                        updateSyncStatus();
+                    });
+
+                    // 監聽同步狀態更新
+                    window.addEventListener('syncStatusUpdated', (event) => {
+                        const status = event.detail;
+                        pendingChanges.value = status.pendingChanges || 0;
+                        lastSyncFormatted.value = status.lastSyncFormatted || '從未同步';
+                        isRealtimeSync.value = status.isRealtimeSync || false;
+                        syncInProgress.value = status.syncInProgress || false;
+                    });
+
+                    // 監聽資料更新
+                    window.addEventListener('dataUpdated', async (event) => {
+                        // 重新載入本地資料
+                        await loadFromIndexedDB();
+                    });
+
+                    // 監聽通知事件
+                    window.addEventListener('showNotification', (event) => {
+                        const { title, message, type } = event.detail;
+                        showNotification(title, message);
+                    });
+                };
+
+                // 從 IndexedDB 載入資料
+                const loadFromIndexedDB = async () => {
+                    if (window.offlineStorage && window.offlineStorage.isInitialized) {
+                        try {
+                            const [recordsData, believersData, remindersData] = await Promise.all([
+                                window.offlineStorage.getAll('records'),
+                                window.offlineStorage.getAll('believers'),
+                                window.offlineStorage.getAll('reminders')
+                            ]);
+                            
+                            records.value = recordsData || [];
+                            believers.value = believersData || [];
+                            reminders.value = remindersData || [];
+                            
+                            // 同時更新 localStorage 以保持兼容性
+                            localStorage.setItem('temple-records', JSON.stringify(records.value));
+                            localStorage.setItem('temple-believers', JSON.stringify(believers.value));
+                            localStorage.setItem('temple-reminders', JSON.stringify(reminders.value));
+                        } catch (error) {
+                            console.error('從 IndexedDB 載入資料失敗:', error);
+                            // 降級到 localStorage
+                            loadFromStorage();
+                        }
+                    } else {
+                        loadFromStorage();
+                    }
+                };
+
                 const updateCategories = () => {
                     // 當類型改變時，清空當前選擇的類別
                     form.value.category = '';
+                };
+
+                // 雲端同步方法
+                const closeUserModal = () => {
+                    showUserModal.value = false;
+                    authForm.value = {
+                        email: '',
+                        password: '',
+                        displayName: ''
+                    };
+                };
+
+                const closeSyncModal = () => {
+                    showSyncModal.value = false;
+                };
+
+                const loginUser = async () => {
+                    authLoading.value = true;
+                    try {
+                        const result = await window.firebaseCloud.loginUser(
+                            authForm.value.email,
+                            authForm.value.password
+                        );
+                        
+                        if (result.success) {
+                            showNotification('登入成功', '歡迎回來！');
+                            closeUserModal();
+                        } else {
+                            alert(result.message);
+                        }
+                    } catch (error) {
+                        alert('登入失敗：' + error.message);
+                    } finally {
+                        authLoading.value = false;
+                    }
+                };
+
+                const registerUser = async () => {
+                    authLoading.value = true;
+                    try {
+                        const result = await window.firebaseCloud.registerUser(
+                            authForm.value.email,
+                            authForm.value.password,
+                            authForm.value.displayName
+                        );
+                        
+                        if (result.success) {
+                            showNotification('註冊成功', '歡迎使用廣清宮記帳軟體！');
+                            closeUserModal();
+                        } else {
+                            alert(result.message);
+                        }
+                    } catch (error) {
+                        alert('註冊失敗：' + error.message);
+                    } finally {
+                        authLoading.value = false;
+                    }
+                };
+
+                const loginAnonymously = async () => {
+                    authLoading.value = true;
+                    try {
+                        const result = await window.firebaseCloud.loginAnonymously();
+                        
+                        if (result.success) {
+                            showNotification('訪客登入成功', '您現在可以使用所有功能');
+                            closeUserModal();
+                        } else {
+                            alert(result.message);
+                        }
+                    } catch (error) {
+                        alert('訪客登入失敗：' + error.message);
+                    } finally {
+                        authLoading.value = false;
+                    }
+                };
+
+                const logoutUser = async () => {
+                    try {
+                        const result = await window.firebaseCloud.logout();
+                        if (result.success) {
+                            showNotification('登出成功', '感謝您的使用');
+                            closeUserModal();
+                        }
+                    } catch (error) {
+                        alert('登出失敗：' + error.message);
+                    }
+                };
+
+                const manualSync = async () => {
+                    try {
+                        await window.cloudSyncManager.manualSync();
+                    } catch (error) {
+                        console.error('手動同步失敗:', error);
+                    }
+                };
+
+                const forceResync = async () => {
+                    try {
+                        await window.cloudSyncManager.forceResync();
+                    } catch (error) {
+                        console.error('強制重新同步失敗:', error);
+                    }
                 };
 
                 // 拖拽排序方法
@@ -6195,7 +6832,7 @@
                     dragOverIndex.value = null;
                 };
                 
-                const saveRecord = () => {
+                const saveRecord = async () => {
                     if (!form.value.category || !form.value.amount) {
                         alert('請填寫必要欄位');
                         return;
@@ -6212,11 +6849,29 @@
                         createdAt: new Date().toISOString()
                     };
                     
-                    records.value.push(newRecord);
-                    saveToStorage();
-                    closeAddModal();
-                    
-                    showNotification('記錄已儲存', '收支記錄已成功新增');
+                    try {
+                        // 保存到 IndexedDB
+                        await window.offlineStorage.add('records', newRecord);
+                        
+                        // 同時更新本地響應式資料
+                        records.value.push(newRecord);
+                        
+                        // 標記本地已修改
+                        localStorage.setItem('temple-last-modified', Date.now().toString());
+                        
+                        closeAddModal();
+                        showNotification('記錄已儲存', '收支記錄已成功新增，將自動同步到雲端');
+                        
+                        // 觸發同步檢查
+                        updateSyncStatus();
+                    } catch (error) {
+                        console.error('保存記錄失敗:', error);
+                        // 降級到 localStorage
+                        records.value.push(newRecord);
+                        saveToStorage();
+                        closeAddModal();
+                        showNotification('記錄已儲存', '已保存到本地，將在網路恢復時同步');
+                    }
                 };
                 
                 const saveReminder = () => {
@@ -8980,39 +9635,17 @@
                 };
                 
                 // 生命週期
-                // 更新同步狀態顯示
-                const updateSyncStatus = () => {
-                    if (typeof window.cloudSync !== 'undefined') {
-                        const status = window.cloudSync.getSyncStatus();
 
-                        const networkStatus = document.getElementById('network-status');
-                        const syncId = document.getElementById('sync-id');
-                        const lastSync = document.getElementById('last-sync');
-                        const cloudDataStatus = document.getElementById('cloud-data-status');
+                onMounted(async () => {
+                    // 設置事件監聽器
+                    setupEventListeners();
+                    
+                    // 載入資料
+                    await loadFromIndexedDB();
+                    await loadCustomCategoriesFromStorage();
 
-                        if (networkStatus) {
-                            networkStatus.textContent = status.isOnline ? '🟢 已連線' : '🔴 離線';
-                            networkStatus.style.color = status.isOnline ? '#4CAF50' : '#f44336';
-                        }
-
-                        if (syncId) {
-                            syncId.textContent = status.syncId || '未設定';
-                        }
-
-                        if (lastSync) {
-                            lastSync.textContent = status.lastSyncTime;
-                        }
-
-                        if (cloudDataStatus) {
-                            cloudDataStatus.textContent = status.hasCloudData ? '✅ 有備份' : '❌ 無備份';
-                            cloudDataStatus.style.color = status.hasCloudData ? '#4CAF50' : '#f44336';
-                        }
-                    }
-                };
-
-                onMounted(() => {
-                    loadFromStorage();
-                    loadCustomCategoriesFromStorage();
+                    // 初始化同步狀態
+                    setTimeout(updateSyncStatus, 1000);
 
                     // 註冊 Service Worker
                     if ('serviceWorker' in navigator) {
@@ -9104,6 +9737,31 @@
                     onDragEnter,
                     onDragLeave,
                     onDrop,
+                    // 雲端同步相關
+                    showUserModal,
+                    showSyncModal,
+                    currentUser,
+                    isOnline,
+                    syncInProgress,
+                    pendingChanges,
+                    lastSyncFormatted,
+                    isRealtimeSync,
+                    authTab,
+                    authLoading,
+                    authForm,
+                    currentUserName,
+                    syncStatusClass,
+                    syncIcon,
+                    syncStatusText,
+                    closeUserModal,
+                    closeSyncModal,
+                    loginUser,
+                    registerUser,
+                    loginAnonymously,
+                    logoutUser,
+                    manualSync,
+                    forceResync,
+                    updateSyncStatus,
                     saveRecord,
                     saveReminder,
                     closeReminderModal,
