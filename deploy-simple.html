@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>廣清宮快速記帳軟體</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .logo {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .feature h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .feature p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .status {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .status h2 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+        }
+        
+        .progress {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .progress-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .progress-item.complete {
+            color: #2e7d32;
+        }
+        
+        .progress-item.in-progress {
+            color: #f57c00;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .footer {
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏛️</div>
+        <h1>廣清宮快速記帳軟體</h1>
+        <p class="subtitle">專為宮廟設計的現代化記帳管理系統</p>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>💰 收支管理</h3>
+                <p>香油錢、光明燈、紅包等宮廟特色收入管理</p>
+            </div>
+            <div class="feature">
+                <h3>📊 財務報表</h3>
+                <p>資產負債表、損益表、現金流量表</p>
+            </div>
+            <div class="feature">
+                <h3>👥 信眾管理</h3>
+                <p>信眾資料、捐款歷史、證明開立</p>
+            </div>
+            <div class="feature">
+                <h3>☁️ 雲端同步</h3>
+                <p>多設備資料同步，離線可用</p>
+            </div>
+        </div>
+        
+        <div class="status">
+            <h2>🚀 開發進度</h2>
+            <p>系統正在進行最後的部署準備，即將上線！</p>
+            
+            <div class="progress">
+                <div class="progress-item complete">
+                    <span>✅</span>
+                    <span>核心功能開發</span>
+                </div>
+                <div class="progress-item complete">
+                    <span>✅</span>
+                    <span>系統整合測試</span>
+                </div>
+                <div class="progress-item complete">
+                    <span>✅</span>
+                    <span>部署環境準備</span>
+                </div>
+                <div class="progress-item complete">
+                    <span>✅</span>
+                    <span>用戶文檔編寫</span>
+                </div>
+                <div class="progress-item in-progress">
+                    <span>🔄</span>
+                    <span>線上部署中</span>
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <a href="index.html" class="btn">進入系統</a>
+            <a href="docs/quick-start-guide.md" class="btn">快速入門</a>
+            <a href="docs/user-manual.md" class="btn">使用手冊</a>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 廣清宮快速記帳軟體 v1.0.0</p>
+            <p>專業 • 安全 • 易用</p>
+        </div>
+    </div>
+    
+    <script>
+        // 簡單的動畫效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                container.style.transition = 'all 0.6s ease';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+        
+        // 檢查系統狀態
+        function checkSystemStatus() {
+            // 這裡可以添加實際的系統狀態檢查
+            console.log('廣清宮記帳軟體 - 系統狀態檢查');
+        }
+        
+        checkSystemStatus();
+    </script>
+</body>
+</html>
