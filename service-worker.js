@@ -23,6 +23,18 @@ self.addEventListener('install', event => {
 
 // 攔截網路請求
 self.addEventListener('fetch', event => {
+  // 過濾不支援的協議
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
+  // 過濾 chrome-extension 和其他不支援的協議
+  if (event.request.url.startsWith('chrome-extension://') ||
+      event.request.url.startsWith('moz-extension://') ||
+      event.request.url.startsWith('safari-extension://')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -30,23 +42,39 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        
+
         // 否則從網路獲取
         return fetch(event.request).then(response => {
           // 檢查是否為有效回應
           if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
-          
+
           // 複製回應
           const responseToCache = response.clone();
-          
+
           caches.open(CACHE_NAME)
             .then(cache => {
-              cache.put(event.request, responseToCache);
+              // 再次檢查 URL 協議
+              if (event.request.url.startsWith('http')) {
+                cache.put(event.request, responseToCache);
+              }
+            })
+            .catch(error => {
+              console.warn('快取儲存失敗:', error);
             });
-          
+
           return response;
+        }).catch(error => {
+          console.warn('網路請求失敗:', error);
+          // 返回離線頁面或預設回應
+          return new Response('離線模式', {
+            status: 200,
+            statusText: 'OK',
+            headers: new Headers({
+              'Content-Type': 'text/html; charset=utf-8'
+            })
+          });
         });
       })
   );

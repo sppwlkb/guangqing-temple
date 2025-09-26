@@ -6,7 +6,7 @@
 class OfflineStorageService {
     constructor() {
         this.dbName = 'GuangqingTempleDB';
-        this.dbVersion = 1;
+        this.dbVersion = 4; // 增加版本號避免衝突
         this.db = null;
         this.isInitialized = false;
         
@@ -78,6 +78,10 @@ class OfflineStorageService {
                 this.db = event.target.result;
                 this.isInitialized = true;
                 console.log('IndexedDB 初始化成功');
+
+                // 發送初始化完成事件
+                window.dispatchEvent(new CustomEvent('offlineStorageReady'));
+
                 resolve(this.db);
             };
             
