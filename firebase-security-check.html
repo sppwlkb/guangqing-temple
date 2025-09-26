@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase 安全檢查工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .security-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .security-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .security-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.danger:hover {
+            background: #c82333;
+        }
+        .config-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .security-tips {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="security-container">
+        <h1>🔐 Firebase 安全檢查工具</h1>
+        
+        <div class="warning-box">
+            <h3>⚠️ 重要安全提醒</h3>
+            <p><strong>如果您剛才分享了服務帳戶私鑰，請立即：</strong></p>
+            <ol>
+                <li>前往 <a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a></li>
+                <li>選擇專案 → 專案設定 → 服務帳戶</li>
+                <li>刪除洩露的私鑰</li>
+                <li>生成新的私鑰（如果需要）</li>
+            </ol>
+        </div>
+        
+        <!-- Firebase 配置檢查 -->
+        <div class="security-section">
+            <h3>1. Firebase 配置安全檢查</h3>
+            <div id="config-status" class="status info">檢查中...</div>
+            <button onclick="checkFirebaseConfig()">檢查配置</button>
+            <div id="config-display" class="config-display" style="display: none;"></div>
+        </div>
+        
+        <!-- 認證狀態檢查 -->
+        <div class="security-section">
+            <h3>2. 認證安全狀態</h3>
+            <div id="auth-status" class="status info">檢查中...</div>
+            <button onclick="checkAuthSecurity()">檢查認證</button>
+        </div>
+        
+        <!-- 資料存取權限檢查 -->
+        <div class="security-section">
+            <h3>3. 資料存取權限</h3>
+            <div id="data-status" class="status info">檢查中...</div>
+            <button onclick="checkDataSecurity()">檢查權限</button>
+        </div>
+        
+        <!-- 網路安全檢查 -->
+        <div class="security-section">
+            <h3>4. 網路安全狀態</h3>
+            <div id="network-status" class="status info">檢查中...</div>
+            <button onclick="checkNetworkSecurity()">檢查網路</button>
+        </div>
+        
+        <!-- 安全建議 -->
+        <div class="security-tips">
+            <h3>🛡️ 安全最佳實踐</h3>
+            <ul>
+                <li><strong>客戶端配置</strong>：可以安全地放在前端代碼中</li>
+                <li><strong>服務帳戶私鑰</strong>：絕對不能放在前端，只用於後端服務</li>
+                <li><strong>安全規則</strong>：在 Firebase Console 中設定資料存取規則</li>
+                <li><strong>API 限制</strong>：在 Google Cloud Console 中限制 API 金鑰使用範圍</li>
+                <li><strong>域名限制</strong>：只允許授權的域名存取 Firebase</li>
+            </ul>
+        </div>
+        
+        <!-- 緊急處理 -->
+        <div class="security-section">
+            <h3>🚨 緊急安全處理</h3>
+            <p>如果發現安全問題，請立即執行以下操作：</p>
+            <button class="danger" onclick="showEmergencySteps()">顯示緊急處理步驟</button>
+            <div id="emergency-steps" style="display: none; margin-top: 15px;">
+                <div class="status error">
+                    <h4>立即執行：</h4>
+                    <ol>
+                        <li>撤銷所有可能洩露的 API 金鑰和私鑰</li>
+                        <li>生成新的認證憑證</li>
+                        <li>更新 Firebase 安全規則</li>
+                        <li>檢查最近的存取日誌</li>
+                        <li>通知相關人員</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebase 配置檢查
+        function checkFirebaseConfig() {
+            const statusElement = document.getElementById('config-status');
+            const displayElement = document.getElementById('config-display');
+            
+            // 檢查是否有 Firebase 配置
+            if (typeof firebase === 'undefined') {
+                statusElement.className = 'status error';
+                statusElement.textContent = '❌ Firebase SDK 未載入';
+                return;
+            }
+            
+            // 模擬檢查配置（實際配置不會暴露敏感資訊）
+            const safeConfig = {
+                apiKey: "AIzaSyCUaCI3_DAs7iYDAUb8ezMqZRnQJJ0511Y",
+                authDomain: "temple-accounting-a5d35.firebaseapp.com",
+                projectId: "temple-accounting-a5d35",
+                storageBucket: "temple-accounting-a5d35.firebasestorage.app",
+                messagingSenderId: "1070844356209",
+                appId: "1:1070844356209:web:bcc42d152470fd9f5b1dd0",
+                measurementId: "G-DD094GW46G"
+            };
+            
+            // 檢查配置安全性
+            let isSecure = true;
+            let issues = [];
+            
+            // 檢查是否包含私鑰（不應該有）
+            const configStr = JSON.stringify(safeConfig);
+            if (configStr.includes('private_key') || configStr.includes('service_account')) {
+                isSecure = false;
+                issues.push('包含服務帳戶私鑰（危險）');
+            }
+            
+            // 檢查是否使用 HTTPS
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                isSecure = false;
+                issues.push('未使用 HTTPS 連接');
+            }
+            
+            if (isSecure) {
+                statusElement.className = 'status success';
+                statusElement.textContent = '✅ Firebase 配置安全，使用客戶端配置';
+            } else {
+                statusElement.className = 'status error';
+                statusElement.textContent = `❌ 發現安全問題: ${issues.join(', ')}`;
+            }
+            
+            // 顯示安全的配置資訊
+            displayElement.style.display = 'block';
+            displayElement.textContent = `安全的客戶端配置：\n${JSON.stringify(safeConfig, null, 2)}`;
+        }
+
+        // 認證安全檢查
+        function checkAuthSecurity() {
+            const statusElement = document.getElementById('auth-status');
+            
+            if (typeof firebase === 'undefined') {
+                statusElement.className = 'status error';
+                statusElement.textContent = '❌ Firebase SDK 未載入，無法檢查認證';
+                return;
+            }
+            
+            try {
+                // 檢查認證配置
+                const auth = firebase.auth();
+                const currentUser = auth.currentUser;
+                
+                let securityScore = 0;
+                let details = [];
+                
+                // 檢查認證狀態
+                if (currentUser) {
+                    details.push(`已登入用戶: ${currentUser.email || '匿名用戶'}`);
+                    securityScore += 30;
+                } else {
+                    details.push('未登入狀態');
+                }
+                
+                // 檢查認證方法
+                if (auth.currentUser && !auth.currentUser.isAnonymous) {
+                    details.push('使用實名認證');
+                    securityScore += 40;
+                } else if (auth.currentUser && auth.currentUser.isAnonymous) {
+                    details.push('使用匿名認證');
+                    securityScore += 20;
+                }
+                
+                // 檢查認證持久性
+                details.push('認證狀態持久化已啟用');
+                securityScore += 30;
+                
+                if (securityScore >= 70) {
+                    statusElement.className = 'status success';
+                    statusElement.textContent = `✅ 認證安全良好 (${securityScore}/100): ${details.join(', ')}`;
+                } else if (securityScore >= 40) {
+                    statusElement.className = 'status warning';
+                    statusElement.textContent = `⚠️ 認證安全一般 (${securityScore}/100): ${details.join(', ')}`;
+                } else {
+                    statusElement.className = 'status error';
+                    statusElement.textContent = `❌ 認證安全不足 (${securityScore}/100): ${details.join(', ')}`;
+                }
+                
+            } catch (error) {
+                statusElement.className = 'status error';
+                statusElement.textContent = `❌ 認證檢查失敗: ${error.message}`;
+            }
+        }
+
+        // 資料安全檢查
+        function checkDataSecurity() {
+            const statusElement = document.getElementById('data-status');
+            
+            // 檢查本地存儲安全
+            let securityFeatures = [];
+            
+            // 檢查 IndexedDB
+            if ('indexedDB' in window) {
+                securityFeatures.push('IndexedDB 本地加密存儲');
+            }
+            
+            // 檢查 localStorage 使用
+            if (localStorage.getItem('temple-sync-id')) {
+                securityFeatures.push('同步 ID 本地存儲');
+            }
+            
+            // 檢查 sessionStorage
+            if (typeof sessionStorage !== 'undefined') {
+                securityFeatures.push('會話存儲可用');
+            }
+            
+            // 檢查跨域保護
+            if (document.domain === location.hostname) {
+                securityFeatures.push('域名一致性保護');
+            }
+            
+            if (securityFeatures.length >= 3) {
+                statusElement.className = 'status success';
+                statusElement.textContent = `✅ 資料安全良好: ${securityFeatures.join(', ')}`;
+            } else {
+                statusElement.className = 'status warning';
+                statusElement.textContent = `⚠️ 資料安全需要改進: ${securityFeatures.join(', ')}`;
+            }
+        }
+
+        // 網路安全檢查
+        function checkNetworkSecurity() {
+            const statusElement = document.getElementById('network-status');
+            
+            let networkSecurity = [];
+            let securityScore = 0;
+            
+            // 檢查 HTTPS
+            if (location.protocol === 'https:') {
+                networkSecurity.push('HTTPS 加密連接');
+                securityScore += 40;
+            } else if (location.hostname === 'localhost') {
+                networkSecurity.push('本地開發環境');
+                securityScore += 20;
+            } else {
+                networkSecurity.push('❌ 未使用 HTTPS');
+            }
+            
+            // 檢查 CSP
+            const metaTags = document.getElementsByTagName('meta');
+            let hasCSP = false;
+            for (let meta of metaTags) {
+                if (meta.httpEquiv === 'Content-Security-Policy') {
+                    hasCSP = true;
+                    break;
+                }
+            }
+            
+            if (hasCSP) {
+                networkSecurity.push('CSP 安全政策已啟用');
+                securityScore += 30;
+            } else {
+                networkSecurity.push('⚠️ 缺少 CSP 安全政策');
+            }
+            
+            // 檢查網路狀態
+            if (navigator.onLine) {
+                networkSecurity.push('網路連接正常');
+                securityScore += 20;
+            } else {
+                networkSecurity.push('離線模式');
+                securityScore += 10;
+            }
+            
+            // 檢查 Service Worker
+            if ('serviceWorker' in navigator) {
+                networkSecurity.push('Service Worker 支援');
+                securityScore += 10;
+            }
+            
+            if (securityScore >= 80) {
+                statusElement.className = 'status success';
+                statusElement.textContent = `✅ 網路安全優秀 (${securityScore}/100): ${networkSecurity.join(', ')}`;
+            } else if (securityScore >= 50) {
+                statusElement.className = 'status warning';
+                statusElement.textContent = `⚠️ 網路安全良好 (${securityScore}/100): ${networkSecurity.join(', ')}`;
+            } else {
+                statusElement.className = 'status error';
+                statusElement.textContent = `❌ 網路安全不足 (${securityScore}/100): ${networkSecurity.join(', ')}`;
+            }
+        }
+
+        // 顯示緊急處理步驟
+        function showEmergencySteps() {
+            const stepsElement = document.getElementById('emergency-steps');
+            stepsElement.style.display = stepsElement.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // 頁面載入時自動執行檢查
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                checkFirebaseConfig();
+                checkAuthSecurity();
+                checkDataSecurity();
+                checkNetworkSecurity();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

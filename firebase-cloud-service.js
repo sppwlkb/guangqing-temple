@@ -25,7 +25,7 @@ class FirebaseCloudService {
                 return;
             }
 
-            // Firebase 配置
+            // Firebase 配置 (客戶端配置，安全可公開)
             const firebaseConfig = {
                 apiKey: "AIzaSyCUaCI3_DAs7iYDAUb8ezMqZRnQJJ0511Y",
                 authDomain: "temple-accounting-a5d35.firebaseapp.com",
