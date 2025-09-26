@@ -6,7 +6,7 @@
 class OfflineStorageService {
     constructor() {
         this.dbName = 'GuangqingTempleDB';
-        this.dbVersion = 4; // 增加版本號避免衝突
+        this.dbVersion = 5; // 再次增加版本號以更新索引
         this.db = null;
         this.isInitialized = false;
         
@@ -51,7 +51,8 @@ class OfflineStorageService {
                 indexes: [
                     { name: 'action', keyPath: 'action' },
                     { name: 'table', keyPath: 'table' },
-                    { name: 'timestamp', keyPath: 'timestamp' }
+                    { name: 'timestamp', keyPath: 'timestamp' },
+                    { name: 'synced', keyPath: 'synced' }
                 ]
             },
             settings: {
@@ -257,20 +258,39 @@ class OfflineStorageService {
      */
     async getByIndex(storeName, indexName, value) {
         await this.ensureInitialized();
-        
+
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readonly');
-            const store = transaction.objectStore(storeName);
-            const index = store.index(indexName);
-            const request = index.getAll(value);
-            
-            request.onsuccess = () => {
-                resolve(request.result);
-            };
-            
-            request.onerror = () => {
-                reject(request.error);
-            };
+            try {
+                const transaction = this.db.transaction([storeName], 'readonly');
+                const store = transaction.objectStore(storeName);
+
+                // 檢查索引是否存在
+                if (!store.indexNames.contains(indexName)) {
+                    console.warn(`索引 '${indexName}' 在 store '${storeName}' 中不存在，返回空陣列`);
+                    resolve([]);
+                    return;
+                }
+
+                const index = store.index(indexName);
+                const request = index.getAll(value);
+
+                request.onsuccess = () => {
+                    resolve(request.result);
+                };
+
+                request.onerror = () => {
+                    console.error(`索引查詢失敗 - Store: ${storeName}, Index: ${indexName}`, request.error);
+                    reject(request.error);
+                };
+
+                transaction.onerror = () => {
+                    console.error(`交易失敗 - Store: ${storeName}`, transaction.error);
+                    reject(transaction.error);
+                };
+            } catch (error) {
+                console.error(`getByIndex 方法執行失敗 - Store: ${storeName}, Index: ${indexName}`, error);
+                reject(error);
+            }
         });
     }
 
@@ -279,21 +299,40 @@ class OfflineStorageService {
      */
     async getByRange(storeName, indexName, lowerBound, upperBound) {
         await this.ensureInitialized();
-        
+
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readonly');
-            const store = transaction.objectStore(storeName);
-            const index = store.index(indexName);
-            const range = IDBKeyRange.bound(lowerBound, upperBound);
-            const request = index.getAll(range);
-            
-            request.onsuccess = () => {
-                resolve(request.result);
-            };
-            
-            request.onerror = () => {
-                reject(request.error);
-            };
+            try {
+                const transaction = this.db.transaction([storeName], 'readonly');
+                const store = transaction.objectStore(storeName);
+
+                // 檢查索引是否存在
+                if (!store.indexNames.contains(indexName)) {
+                    console.warn(`索引 '${indexName}' 在 store '${storeName}' 中不存在，返回空陣列`);
+                    resolve([]);
+                    return;
+                }
+
+                const index = store.index(indexName);
+                const range = IDBKeyRange.bound(lowerBound, upperBound);
+                const request = index.getAll(range);
+
+                request.onsuccess = () => {
+                    resolve(request.result);
+                };
+
+                request.onerror = () => {
+                    console.error(`範圍查詢失敗 - Store: ${storeName}, Index: ${indexName}`, request.error);
+                    reject(request.error);
+                };
+
+                transaction.onerror = () => {
+                    console.error(`交易失敗 - Store: ${storeName}`, transaction.error);
+                    reject(transaction.error);
+                };
+            } catch (error) {
+                console.error(`getByRange 方法執行失敗 - Store: ${storeName}, Index: ${indexName}`, error);
+                reject(error);
+            }
         });
     }
 
@@ -330,24 +369,41 @@ class OfflineStorageService {
         await this.ensureInitialized();
         
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction([storeName], 'readonly');
-            const store = transaction.objectStore(storeName);
-            
-            let request;
-            if (indexName && value !== null) {
-                const index = store.index(indexName);
-                request = index.count(value);
-            } else {
-                request = store.count();
+            try {
+                const transaction = this.db.transaction([storeName], 'readonly');
+                const store = transaction.objectStore(storeName);
+
+                let request;
+                if (indexName && value !== null) {
+                    // 檢查索引是否存在
+                    if (store.indexNames.contains(indexName)) {
+                        const index = store.index(indexName);
+                        request = index.count(value);
+                    } else {
+                        console.warn(`索引 '${indexName}' 在 store '${storeName}' 中不存在，使用全部計數`);
+                        request = store.count();
+                    }
+                } else {
+                    request = store.count();
+                }
+
+                request.onsuccess = () => {
+                    resolve(request.result);
+                };
+
+                request.onerror = () => {
+                    console.error(`計數操作失敗 - Store: ${storeName}, Index: ${indexName}`, request.error);
+                    reject(request.error);
+                };
+
+                transaction.onerror = () => {
+                    console.error(`交易失敗 - Store: ${storeName}`, transaction.error);
+                    reject(transaction.error);
+                };
+            } catch (error) {
+                console.error(`計數方法執行失敗 - Store: ${storeName}, Index: ${indexName}`, error);
+                reject(error);
             }
-            
-            request.onsuccess = () => {
-                resolve(request.result);
-            };
-            
-            request.onerror = () => {
-                reject(request.error);
-            };
         });
     }
 

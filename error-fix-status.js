@@ -9,7 +9,8 @@ class ErrorFixStatus {
             indexedDBVersion: false,
             serviceWorkerCache: false,
             moduleImport: false,
-            databaseCleanup: false
+            databaseCleanup: false,
+            indexRepair: false
         };
         
         this.init();
@@ -30,6 +31,9 @@ class ErrorFixStatus {
         
         // 監控資料庫清理狀態
         this.checkDatabaseCleanup();
+
+        // 監控索引修復狀態
+        this.checkIndexRepair();
         
         // 定期檢查修復狀態
         setInterval(() => {
@@ -117,13 +121,44 @@ class ErrorFixStatus {
             this.fixes.databaseCleanup = true;
             console.log('✅ 資料庫清理已完成');
         });
-        
+
         // 檢查是否需要清理
         if (localStorage.getItem('need_restore_backup') === 'true') {
             console.log('ℹ️ 檢測到需要恢復備份資料');
         } else {
             this.fixes.databaseCleanup = true;
         }
+    }
+
+    /**
+     * 檢查索引修復狀態
+     */
+    checkIndexRepair() {
+        // 監聽索引修復完成事件
+        window.addEventListener('indexRepairComplete', (event) => {
+            if (event.detail.success) {
+                this.fixes.indexRepair = true;
+                console.log('✅ IndexedDB 索引修復已完成');
+            } else {
+                console.warn('❌ IndexedDB 索引修復失敗:', event.detail.error);
+            }
+        });
+
+        // 檢查是否有索引錯誤
+        window.addEventListener('error', (event) => {
+            if (event.message && event.message.includes('The specified index was not found')) {
+                console.warn('❌ 發現索引不存在錯誤:', event.message);
+                this.fixes.indexRepair = false;
+            }
+        });
+
+        // 默認假設索引正常，等待事件確認
+        setTimeout(() => {
+            if (this.fixes.indexRepair === false) {
+                // 如果沒有收到修復完成事件，保持 false
+                console.log('ℹ️ 等待索引修復完成...');
+            }
+        }, 3000);
     }
 
     /**
