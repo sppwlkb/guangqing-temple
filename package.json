@@ -15,7 +15,8 @@
     "clean": "rimraf dist node_modules/.vite",
     "reinstall": "rimraf node_modules package-lock.json && npm install",
     "clean-install": "rmdir /s /q node_modules 2>nul & del package-lock.json 2>nul & npm cache clean --force & npm install --legacy-peer-deps",
-    "force-install": "npm install --legacy-peer-deps --force"
+    "force-install": "npm install --legacy-peer-deps --force",
+    "deploy:vercel": "vercel --prod --yes"
   },
   "dependencies": {
     "vue": "^3.4.0",
@@ -24,7 +25,9 @@
     "element-plus": "^2.4.0",
     "echarts": "^5.4.3",
     "dayjs": "^1.11.10",
-    "@element-plus/icons-vue": "^2.3.0"
+    "@element-plus/icons-vue": "^2.3.0",
+    "firebase": "^10.12.2",
+    "crypto-js": "^4.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",

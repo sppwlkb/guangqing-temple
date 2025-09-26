@@ -79,10 +79,33 @@
                 <el-icon><Document /></el-icon>
                 <span>財務報表</span>
               </template>
+              <el-menu-item index="/reports/financial">標準財務報表</el-menu-item>
+              <el-menu-item index="/reports/analytics">進階財務分析</el-menu-item>
               <el-menu-item index="/reports/summary">收支總表</el-menu-item>
               <el-menu-item index="/reports/analysis">財務分析</el-menu-item>
               <el-menu-item index="/reports/trends">趨勢分析</el-menu-item>
               <el-menu-item index="/reports/export">匯出報表</el-menu-item>
+            </el-sub-menu>
+
+            <el-sub-menu index="accounting">
+              <template #title>
+                <el-icon><Odometer /></el-icon>
+                <span>會計管理</span>
+              </template>
+              <el-menu-item index="/accounting/subjects">會計科目</el-menu-item>
+            </el-sub-menu>
+
+            <el-menu-item index="/believers">
+              <el-icon><User /></el-icon>
+              <span>信眾管理</span>
+            </el-menu-item>
+
+            <el-sub-menu index="admin" v-if="isAdmin">
+              <template #title>
+                <el-icon><Setting /></el-icon>
+                <span>系統管理</span>
+              </template>
+              <el-menu-item index="/admin/security">安全性管理</el-menu-item>
             </el-sub-menu>
 
             <el-menu-item index="/reminders">
@@ -90,10 +113,13 @@
               <span>提醒通知</span>
             </el-menu-item>
 
-            <el-menu-item index="/settings">
-              <el-icon><Setting /></el-icon>
-              <span>系統設定</span>
-            </el-menu-item>
+            <el-sub-menu index="settings">
+              <template #title>
+                <el-icon><Setting /></el-icon>
+                <span>系統設定</span>
+              </template>
+              <el-menu-item index="/settings/ui">界面設定</el-menu-item>
+            </el-sub-menu>
           </el-menu>
         </el-aside>
 
@@ -112,13 +138,7 @@
 
     <!-- 狀態列 -->
     <div class="status-bar">
-      <span class="status-item">
-        <el-icon><Connection /></el-icon>
-        {{ connectionStatus }}
-      </span>
-      <span class="status-item">
-        最後同步: {{ lastSyncTime }}
-      </span>
+      <CloudSync />
       <span class="status-item">
         版本: v1.0.0
       </span>
@@ -130,15 +150,20 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from './stores/app'
-import { 
-  Plus, Refresh, User, Odometer, Money, Wallet, 
-  Scale, Document, Bell, Setting, Connection 
+import { useAuthStore } from './stores/auth'
+import { useUIStore } from './stores/ui'
+import {
+  Plus, Refresh, User, Odometer, Money, Wallet,
+  Scale, Document, Bell, Setting, Connection
 } from '@element-plus/icons-vue'
 import QuickAddDialog from './components/QuickAddDialog.vue'
 import FeedbackCollector from './components/common/FeedbackCollector.vue'
+import CloudSync from './components/CloudSync.vue'
 
 const router = useRouter()
 const appStore = useAppStore()
+const authStore = useAuthStore()
+const uiStore = useUIStore()
 
 const showQuickAdd = ref(false)
 const syncing = ref(false)
@@ -151,6 +176,8 @@ const connectionStatus = computed(() => {
 const lastSyncTime = computed(() => {
   return appStore.lastSyncTime || '從未同步'
 })
+
+const isAdmin = computed(() => authStore.isAdmin)
 
 const syncData = async () => {
   syncing.value = true
@@ -185,6 +212,12 @@ const handleUserAction = (command) => {
 onMounted(() => {
   // 初始化應用程式
   appStore.initialize()
+
+  // 初始化身份驗證
+  authStore.initialize()
+
+  // 初始化 UI 設定
+  uiStore.initialize()
   
   // 監聽 Electron 選單事件
   if (window.require) {

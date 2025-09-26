@@ -16,6 +16,7 @@ import ReportsExport from '../views/reports/ReportsExport.vue'
 import Reminders from '../views/Reminders.vue'
 import Settings from '../views/Settings.vue'
 import Profile from '../views/Profile.vue'
+import SubjectManagement from '../views/accounting/SubjectManagement.vue'
 
 const routes = [
   {
@@ -111,6 +112,42 @@ const routes = [
     name: 'Profile',
     component: Profile,
     meta: { title: '個人設定' }
+  },
+  {
+    path: '/accounting/subjects',
+    name: 'SubjectManagement',
+    component: SubjectManagement,
+    meta: { title: '會計科目管理' }
+  },
+  {
+    path: '/reports/financial',
+    name: 'FinancialReports',
+    component: () => import('../views/reports/FinancialReports.vue'),
+    meta: { title: '標準財務報表' }
+  },
+  {
+    path: '/reports/analytics',
+    name: 'AdvancedAnalytics',
+    component: () => import('../views/reports/AdvancedAnalytics.vue'),
+    meta: { title: '進階財務分析' }
+  },
+  {
+    path: '/believers',
+    name: 'BelieversManagement',
+    component: () => import('../views/believers/BelieversManagement.vue'),
+    meta: { title: '信眾管理' }
+  },
+  {
+    path: '/admin/security',
+    name: 'SecurityManagement',
+    component: () => import('../views/admin/SecurityManagement.vue'),
+    meta: { title: '安全性管理', requiresAuth: true, requiresPermission: 'system_settings' }
+  },
+  {
+    path: '/settings/ui',
+    name: 'UISettings',
+    component: () => import('../views/settings/UISettings.vue'),
+    meta: { title: '界面設定' }
   }
 ]
 

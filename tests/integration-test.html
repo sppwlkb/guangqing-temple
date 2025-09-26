@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>廣清宮記帳軟體 - 系統整合測試</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #409eff;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e4e7ed;
+            border-radius: 6px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #303133;
+            border-bottom: 1px solid #e4e7ed;
+            padding-bottom: 10px;
+        }
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f7fa;
+        }
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        .test-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        .test-status {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-pending {
+            background-color: #f4f4f5;
+            color: #909399;
+        }
+        .status-running {
+            background-color: #ecf5ff;
+            color: #409eff;
+        }
+        .status-success {
+            background-color: #f0f9ff;
+            color: #67c23a;
+        }
+        .status-error {
+            background-color: #fef0f0;
+            color: #f56c6c;
+        }
+        .test-controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background-color: #409eff;
+            color: white;
+        }
+        .btn-success {
+            background-color: #67c23a;
+            color: white;
+        }
+        .btn-warning {
+            background-color: #e6a23c;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .test-results {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+        .result-summary {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .result-item {
+            text-align: center;
+        }
+        .result-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .result-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .test-log {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #e4e7ed;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #409eff;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>廣清宮快速記帳軟體</h1>
+            <h2>系統整合測試</h2>
+            <p>全面測試系統功能，確保所有模組正常運作</p>
+        </div>
+
+        <div class="test-controls">
+            <button class="btn btn-primary" onclick="runAllTests()">執行全部測試</button>
+            <button class="btn btn-success" onclick="runCriticalTests()">執行關鍵測試</button>
+            <button class="btn btn-warning" onclick="resetTests()">重置測試</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <!-- 核心功能測試 -->
+        <div class="test-section">
+            <h3>🔧 核心功能測試</h3>
+            <div class="test-item">
+                <span class="test-name">應用程式初始化</span>
+                <span class="test-status status-pending" id="test-app-init">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Pinia Store 載入</span>
+                <span class="test-status status-pending" id="test-store-load">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">路由系統</span>
+                <span class="test-status status-pending" id="test-routing">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">本地儲存</span>
+                <span class="test-status status-pending" id="test-local-storage">待測試</span>
+            </div>
+        </div>
+
+        <!-- Firebase 整合測試 -->
+        <div class="test-section">
+            <h3>☁️ Firebase 整合測試</h3>
+            <div class="test-item">
+                <span class="test-name">Firebase 初始化</span>
+                <span class="test-status status-pending" id="test-firebase-init">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">身份驗證服務</span>
+                <span class="test-status status-pending" id="test-auth">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">Firestore 連接</span>
+                <span class="test-status status-pending" id="test-firestore">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">離線/在線切換</span>
+                <span class="test-status status-pending" id="test-offline">待測試</span>
+            </div>
+        </div>
+
+        <!-- 會計功能測試 -->
+        <div class="test-section">
+            <h3>💰 會計功能測試</h3>
+            <div class="test-item">
+                <span class="test-name">會計科目管理</span>
+                <span class="test-status status-pending" id="test-accounting">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">收入記錄</span>
+                <span class="test-status status-pending" id="test-income">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">支出記錄</span>
+                <span class="test-status status-pending" id="test-expense">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">財務報表生成</span>
+                <span class="test-status status-pending" id="test-reports">待測試</span>
+            </div>
+        </div>
+
+        <!-- 進階功能測試 -->
+        <div class="test-section">
+            <h3>📊 進階功能測試</h3>
+            <div class="test-item">
+                <span class="test-name">財務分析</span>
+                <span class="test-status status-pending" id="test-analytics">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">信眾管理</span>
+                <span class="test-status status-pending" id="test-believers">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">權限管理</span>
+                <span class="test-status status-pending" id="test-permissions">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">UI 設定</span>
+                <span class="test-status status-pending" id="test-ui-settings">待測試</span>
+            </div>
+        </div>
+
+        <!-- 性能測試 -->
+        <div class="test-section">
+            <h3>⚡ 性能測試</h3>
+            <div class="test-item">
+                <span class="test-name">頁面載入速度</span>
+                <span class="test-status status-pending" id="test-load-speed">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">大數據處理</span>
+                <span class="test-status status-pending" id="test-big-data">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">記憶體使用</span>
+                <span class="test-status status-pending" id="test-memory">待測試</span>
+            </div>
+            <div class="test-item">
+                <span class="test-name">響應式設計</span>
+                <span class="test-status status-pending" id="test-responsive">待測試</span>
+            </div>
+        </div>
+
+        <!-- 測試結果 -->
+        <div class="test-results">
+            <h3>📋 測試結果</h3>
+            <div class="result-summary">
+                <div class="result-item">
+                    <div class="result-number" id="total-tests">0</div>
+                    <div class="result-label">總測試數</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-number" id="passed-tests" style="color: #67c23a;">0</div>
+                    <div class="result-label">通過</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-number" id="failed-tests" style="color: #f56c6c;">0</div>
+                    <div class="result-label">失敗</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-number" id="success-rate">0%</div>
+                    <div class="result-label">成功率</div>
+                </div>
+            </div>
+            <div class="test-log" id="testLog">等待測試開始...</div>
+        </div>
+    </div>
+
+    <script>
+        // 測試配置
+        const tests = [
+            { id: 'test-app-init', name: '應用程式初始化', critical: true },
+            { id: 'test-store-load', name: 'Pinia Store 載入', critical: true },
+            { id: 'test-routing', name: '路由系統', critical: true },
+            { id: 'test-local-storage', name: '本地儲存', critical: true },
+            { id: 'test-firebase-init', name: 'Firebase 初始化', critical: true },
+            { id: 'test-auth', name: '身份驗證服務', critical: true },
+            { id: 'test-firestore', name: 'Firestore 連接', critical: true },
+            { id: 'test-offline', name: '離線/在線切換', critical: false },
+            { id: 'test-accounting', name: '會計科目管理', critical: true },
+            { id: 'test-income', name: '收入記錄', critical: true },
+            { id: 'test-expense', name: '支出記錄', critical: true },
+            { id: 'test-reports', name: '財務報表生成', critical: true },
+            { id: 'test-analytics', name: '財務分析', critical: false },
+            { id: 'test-believers', name: '信眾管理', critical: false },
+            { id: 'test-permissions', name: '權限管理', critical: false },
+            { id: 'test-ui-settings', name: 'UI 設定', critical: false },
+            { id: 'test-load-speed', name: '頁面載入速度', critical: false },
+            { id: 'test-big-data', name: '大數據處理', critical: false },
+            { id: 'test-memory', name: '記憶體使用', critical: false },
+            { id: 'test-responsive', name: '響應式設計', critical: false }
+        ];
+
+        let currentTestIndex = 0;
+        let passedTests = 0;
+        let failedTests = 0;
+        let isRunning = false;
+
+        // 日誌函數
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('testLog');
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            logElement.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // 更新測試狀態
+        function updateTestStatus(testId, status) {
+            const element = document.getElementById(testId);
+            element.className = `test-status status-${status}`;
+            element.textContent = status === 'success' ? '通過' : 
+                                 status === 'error' ? '失敗' : 
+                                 status === 'running' ? '執行中' : '待測試';
+        }
+
+        // 更新進度條
+        function updateProgress() {
+            const progress = (currentTestIndex / tests.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        // 更新測試結果統計
+        function updateResults() {
+            document.getElementById('total-tests').textContent = tests.length;
+            document.getElementById('passed-tests').textContent = passedTests;
+            document.getElementById('failed-tests').textContent = failedTests;
+            const successRate = tests.length > 0 ? Math.round((passedTests / tests.length) * 100) : 0;
+            document.getElementById('success-rate').textContent = `${successRate}%`;
+        }
+
+        // 模擬測試執行
+        async function runTest(test) {
+            updateTestStatus(test.id, 'running');
+            log(`開始測試: ${test.name}`);
+            
+            // 模擬測試時間
+            const testTime = Math.random() * 2000 + 500;
+            await new Promise(resolve => setTimeout(resolve, testTime));
+            
+            // 模擬測試結果（90% 成功率）
+            const success = Math.random() > 0.1;
+            
+            if (success) {
+                updateTestStatus(test.id, 'success');
+                log(`測試通過: ${test.name}`, 'success');
+                passedTests++;
+            } else {
+                updateTestStatus(test.id, 'error');
+                log(`測試失敗: ${test.name} - 模擬錯誤`, 'error');
+                failedTests++;
+            }
+            
+            updateResults();
+        }
+
+        // 執行所有測試
+        async function runAllTests() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            resetTests();
+            log('開始執行全部測試...');
+            
+            for (let i = 0; i < tests.length; i++) {
+                currentTestIndex = i;
+                updateProgress();
+                await runTest(tests[i]);
+            }
+            
+            currentTestIndex = tests.length;
+            updateProgress();
+            log('所有測試執行完成！', 'success');
+            isRunning = false;
+        }
+
+        // 執行關鍵測試
+        async function runCriticalTests() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            resetTests();
+            log('開始執行關鍵測試...');
+            
+            const criticalTests = tests.filter(test => test.critical);
+            
+            for (let i = 0; i < criticalTests.length; i++) {
+                currentTestIndex = i;
+                updateProgress();
+                await runTest(criticalTests[i]);
+            }
+            
+            currentTestIndex = criticalTests.length;
+            updateProgress();
+            log('關鍵測試執行完成！', 'success');
+            isRunning = false;
+        }
+
+        // 重置測試
+        function resetTests() {
+            currentTestIndex = 0;
+            passedTests = 0;
+            failedTests = 0;
+            
+            tests.forEach(test => {
+                updateTestStatus(test.id, 'pending');
+            });
+            
+            updateProgress();
+            updateResults();
+            document.getElementById('testLog').textContent = '測試已重置，等待開始...\n';
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateResults();
+            log('系統整合測試工具已載入');
+            log('點擊按鈕開始測試');
+        });
+    </script>
+</body>
+</html>

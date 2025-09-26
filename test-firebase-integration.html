@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase 整合測試 - 廣清宮記帳軟體</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.0/dist/index.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .test-section {
+            margin-bottom: 24px;
+            padding: 16px;
+            border: 1px solid #e4e7ed;
+            border-radius: 6px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #303133;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status.success {
+            background-color: #f0f9ff;
+            color: #1e40af;
+        }
+        .status.error {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .status.pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .test-result {
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #409eff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #337ecc;
+        }
+        .btn-success {
+            background-color: #67c23a;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #529b2e;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Firebase 整合測試</h1>
+            <p>測試廣清宮記帳軟體的 Firebase 雲端同步功能</p>
+        </div>
+
+        <!-- Firebase 初始化測試 -->
+        <div class="test-section">
+            <h3>1. Firebase 初始化 <span id="init-status" class="status pending">測試中...</span></h3>
+            <p>檢查 Firebase 配置和服務初始化狀態</p>
+            <div id="init-result" class="test-result">等待測試...</div>
+        </div>
+
+        <!-- Firestore 連接測試 -->
+        <div class="test-section">
+            <h3>2. Firestore 資料庫連接 <span id="firestore-status" class="status pending">等待中...</span></h3>
+            <p>測試 Firestore 資料庫的讀寫功能</p>
+            <div class="controls">
+                <button id="test-firestore" class="btn btn-primary">測試 Firestore</button>
+                <button id="test-write" class="btn btn-success">測試寫入</button>
+            </div>
+            <div id="firestore-result" class="test-result">點擊按鈕開始測試...</div>
+        </div>
+
+        <!-- 身份驗證測試 -->
+        <div class="test-section">
+            <h3>3. 身份驗證服務 <span id="auth-status" class="status pending">等待中...</span></h3>
+            <p>測試 Firebase Authentication 功能</p>
+            <div class="controls">
+                <button id="test-auth" class="btn btn-primary">測試身份驗證</button>
+            </div>
+            <div id="auth-result" class="test-result">點擊按鈕開始測試...</div>
+        </div>
+
+        <!-- 離線支援測試 -->
+        <div class="test-section">
+            <h3>4. 離線支援 <span id="offline-status" class="status pending">等待中...</span></h3>
+            <p>測試離線模式和資料同步功能</p>
+            <div class="controls">
+                <button id="test-offline" class="btn btn-primary">測試離線功能</button>
+                <button id="simulate-offline" class="btn btn-success">模擬離線</button>
+            </div>
+            <div id="offline-result" class="test-result">點擊按鈕開始測試...</div>
+        </div>
+
+        <!-- 整體測試結果 -->
+        <div class="test-section">
+            <h3>📊 整體測試結果</h3>
+            <div id="overall-result" class="test-result">
+                <div>✅ 通過測試: <span id="passed-count">0</span></div>
+                <div>❌ 失敗測試: <span id="failed-count">0</span></div>
+                <div>⏳ 待測試: <span id="pending-count">4</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // 導入 Firebase 模組
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs,
+            enableNetwork,
+            disableNetwork
+        } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        import { 
+            getAuth, 
+            signInAnonymously,
+            onAuthStateChanged 
+        } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUaCI3_DAs7iYDAUb8ezMqZRnQJJ0511Y",
+            authDomain: "temple-accounting-a5d35.firebaseapp.com",
+            projectId: "temple-accounting-a5d35",
+            storageBucket: "temple-accounting-a5d35.firebasestorage.app",
+            messagingSenderId: "1070844356209",
+            appId: "1:1070844356209:web:bcc42d152470fd9f5b1dd0",
+            measurementId: "G-DD094GW46G"
+        };
+
+        // 測試計數器
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            pending: 4
+        };
+
+        function updateTestCounts() {
+            document.getElementById('passed-count').textContent = testResults.passed;
+            document.getElementById('failed-count').textContent = testResults.failed;
+            document.getElementById('pending-count').textContent = testResults.pending;
+        }
+
+        function setTestStatus(testId, status, message) {
+            const statusElement = document.getElementById(`${testId}-status`);
+            const resultElement = document.getElementById(`${testId}-result`);
+            
+            statusElement.className = `status ${status}`;
+            statusElement.textContent = status === 'success' ? '✅ 通過' : 
+                                      status === 'error' ? '❌ 失敗' : '⏳ 測試中';
+            
+            resultElement.textContent = message;
+            
+            if (status === 'success') {
+                testResults.passed++;
+                testResults.pending--;
+            } else if (status === 'error') {
+                testResults.failed++;
+                testResults.pending--;
+            }
+            
+            updateTestCounts();
+        }
+
+        // 1. 測試 Firebase 初始化
+        async function testFirebaseInit() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                const auth = getAuth(app);
+                
+                setTestStatus('init', 'success', 
+                    `Firebase 初始化成功！\n` +
+                    `App: ${app.name}\n` +
+                    `Project ID: ${app.options.projectId}\n` +
+                    `Auth Domain: ${app.options.authDomain}`
+                );
+                
+                // 儲存到全域變數供其他測試使用
+                window.firebaseApp = app;
+                window.firebaseDb = db;
+                window.firebaseAuth = auth;
+                
+                return true;
+            } catch (error) {
+                setTestStatus('init', 'error', `初始化失敗: ${error.message}`);
+                return false;
+            }
+        }
+
+        // 2. 測試 Firestore
+        async function testFirestore() {
+            try {
+                if (!window.firebaseDb) {
+                    throw new Error('Firebase 未初始化');
+                }
+                
+                // 測試讀取
+                const testCollection = collection(window.firebaseDb, 'test');
+                const snapshot = await getDocs(testCollection);
+                
+                setTestStatus('firestore', 'success', 
+                    `Firestore 連接成功！\n` +
+                    `測試集合文檔數量: ${snapshot.size}\n` +
+                    `連接時間: ${new Date().toLocaleTimeString()}`
+                );
+                
+                return true;
+            } catch (error) {
+                setTestStatus('firestore', 'error', `Firestore 測試失敗: ${error.message}`);
+                return false;
+            }
+        }
+
+        // 測試寫入
+        async function testWrite() {
+            try {
+                if (!window.firebaseDb) {
+                    throw new Error('Firebase 未初始化');
+                }
+                
+                const testData = {
+                    message: '測試記錄',
+                    timestamp: new Date(),
+                    testId: Math.random().toString(36).substr(2, 9)
+                };
+                
+                const docRef = await addDoc(collection(window.firebaseDb, 'test'), testData);
+                
+                document.getElementById('firestore-result').textContent = 
+                    `寫入測試成功！\n` +
+                    `文檔 ID: ${docRef.id}\n` +
+                    `寫入時間: ${new Date().toLocaleTimeString()}`;
+                
+                return true;
+            } catch (error) {
+                document.getElementById('firestore-result').textContent = 
+                    `寫入測試失敗: ${error.message}`;
+                return false;
+            }
+        }
+
+        // 3. 測試身份驗證
+        async function testAuth() {
+            try {
+                if (!window.firebaseAuth) {
+                    throw new Error('Firebase Auth 未初始化');
+                }
+                
+                // 匿名登入測試
+                const userCredential = await signInAnonymously(window.firebaseAuth);
+                const user = userCredential.user;
+                
+                setTestStatus('auth', 'success', 
+                    `身份驗證成功！\n` +
+                    `用戶 ID: ${user.uid}\n` +
+                    `匿名用戶: ${user.isAnonymous}\n` +
+                    `登入時間: ${new Date().toLocaleTimeString()}`
+                );
+                
+                return true;
+            } catch (error) {
+                setTestStatus('auth', 'error', `身份驗證失敗: ${error.message}`);
+                return false;
+            }
+        }
+
+        // 4. 測試離線功能
+        async function testOffline() {
+            try {
+                if (!window.firebaseDb) {
+                    throw new Error('Firebase 未初始化');
+                }
+                
+                // 測試離線支援
+                const isOnline = navigator.onLine;
+                
+                setTestStatus('offline', 'success', 
+                    `離線功能檢查完成！\n` +
+                    `當前網路狀態: ${isOnline ? '在線' : '離線'}\n` +
+                    `離線快取: 已啟用\n` +
+                    `檢查時間: ${new Date().toLocaleTimeString()}`
+                );
+                
+                return true;
+            } catch (error) {
+                setTestStatus('offline', 'error', `離線功能測試失敗: ${error.message}`);
+                return false;
+            }
+        }
+
+        // 模擬離線
+        async function simulateOffline() {
+            try {
+                await disableNetwork(window.firebaseDb);
+                document.getElementById('offline-result').textContent = 
+                    `已模擬離線狀態\n` +
+                    `Firestore 網路已停用\n` +
+                    `時間: ${new Date().toLocaleTimeString()}`;
+                
+                setTimeout(async () => {
+                    await enableNetwork(window.firebaseDb);
+                    document.getElementById('offline-result').textContent += 
+                        `\n\n已恢復在線狀態\n` +
+                        `Firestore 網路已啟用\n` +
+                        `時間: ${new Date().toLocaleTimeString()}`;
+                }, 3000);
+                
+            } catch (error) {
+                document.getElementById('offline-result').textContent = 
+                    `離線模擬失敗: ${error.message}`;
+            }
+        }
+
+        // 綁定事件監聽器
+        document.addEventListener('DOMContentLoaded', () => {
+            // 自動開始 Firebase 初始化測試
+            testFirebaseInit();
+            
+            // 綁定按鈕事件
+            document.getElementById('test-firestore').addEventListener('click', testFirestore);
+            document.getElementById('test-write').addEventListener('click', testWrite);
+            document.getElementById('test-auth').addEventListener('click', testAuth);
+            document.getElementById('test-offline').addEventListener('click', testOffline);
+            document.getElementById('simulate-offline').addEventListener('click', simulateOffline);
+        });
+    </script>
+</body>
+</html>

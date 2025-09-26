@@ -1,0 +1,172 @@
+# 廣清宮記帳軟體 - Docker Compose 配置
+version: '3.8'
+
+services:
+  # 主應用服務
+  temple-accounting:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: temple-accounting-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      # 日誌持久化
+      - ./logs:/var/log/nginx
+      # 配置檔案 (如果需要覆蓋)
+      # - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      # - ./deploy/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - temple-network
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/health-check.sh", "quick"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.temple-accounting.rule=Host(`accounting.temple.com`)"
+      - "traefik.http.routers.temple-accounting.tls=true"
+      - "traefik.http.routers.temple-accounting.tls.certresolver=letsencrypt"
+      - "traefik.http.services.temple-accounting.loadbalancer.server.port=8080"
+
+  # 反向代理 (可選)
+  traefik:
+    image: traefik:v2.10
+    container_name: temple-traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8081:8080"  # Traefik 儀表板
+    command:
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.email=admin@temple.com
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --log.level=INFO
+      - --accesslog=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+      - ./traefik-logs:/var/log/traefik
+    networks:
+      - temple-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.temple.com`)"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+    profiles:
+      - proxy
+
+  # 監控服務 (可選)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: temple-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - temple-network
+    profiles:
+      - monitoring
+
+  # 日誌收集 (可選)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: temple-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - temple-network
+    profiles:
+      - monitoring
+
+  # 備份服務 (可選)
+  backup:
+    image: alpine:latest
+    container_name: temple-backup
+    restart: "no"
+    volumes:
+      - ./backups:/backups
+      - ./logs:/source/logs:ro
+      - ./letsencrypt:/source/letsencrypt:ro
+    command: |
+      sh -c "
+        apk add --no-cache tar gzip &&
+        cd /source &&
+        tar -czf /backups/temple-backup-$$(date +%Y%m%d_%H%M%S).tar.gz . &&
+        find /backups -name '*.tar.gz' -mtime +30 -delete &&
+        echo 'Backup completed'
+      "
+    profiles:
+      - backup
+
+# 網路配置
+networks:
+  temple-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# 持久化儲存
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# 開發環境覆蓋
+---
+# docker-compose.override.yml (開發環境)
+version: '3.8'
+
+services:
+  temple-accounting-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: temple-accounting-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_APP_ENV=development
+    networks:
+      - temple-network
+    profiles:
+      - dev

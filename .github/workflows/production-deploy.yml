@@ -1,0 +1,362 @@
+# 廣清宮記帳軟體 - 生產環境部署流程
+name: Production Deployment
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # 代碼品質檢查
+  quality-check:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run system check
+        run: node tests/simple-check.mjs
+
+      - name: Check build configuration
+        run: |
+          echo "Checking production configuration..."
+          if [ -f ".env.production.example" ]; then
+            echo "✅ Production environment template found"
+          else
+            echo "⚠️ Production environment template missing"
+          fi
+
+  # 建置和測試
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: quality-check
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build-number: ${{ steps.version.outputs.build-number }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate version info
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          BUILD_NUMBER="${{ github.run_number }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build-number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION, Build: $BUILD_NUMBER"
+
+      - name: Build application
+        env:
+          VITE_APP_VERSION: ${{ steps.version.outputs.version }}
+          VITE_APP_BUILD_NUMBER: ${{ steps.version.outputs.build-number }}
+          VITE_APP_COMMIT_SHA: ${{ github.sha }}
+          NODE_ENV: production
+        run: npm run build
+
+      - name: Validate build
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "❌ Build failed - dist directory not found"
+            exit 1
+          fi
+          
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ Build failed - index.html not found"
+            exit 1
+          fi
+          
+          # 檢查建置檔案大小
+          BUILD_SIZE=$(du -sh dist | cut -f1)
+          echo "📦 Build size: $BUILD_SIZE"
+          
+          # 檢查是否包含應用標題
+          if grep -q "廣清宮" dist/index.html; then
+            echo "✅ Application title found in build"
+          else
+            echo "⚠️ Application title not found in build"
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files-${{ steps.version.outputs.version }}
+          path: dist/
+          retention-days: 30
+
+  # Docker 映像建置
+  build-docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=${{ needs.build-and-test.outputs.version }}
+            BUILD_NUMBER=${{ needs.build-and-test.outputs.build-number }}
+
+  # 部署到 Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-and-test, build-docker]
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.temple-accounting.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-files-${{ needs.build-and-test.outputs.version }}
+          path: dist/
+
+      - name: Deploy to Firebase Hosting (Staging)
+        if: vars.FIREBASE_PROJECT_STAGING
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}'
+          projectId: ${{ vars.FIREBASE_PROJECT_STAGING }}
+          channelId: live
+
+      - name: Deploy to custom staging server
+        if: vars.STAGING_SERVER
+        run: |
+          echo "🚀 Deploying to staging server..."
+          # 這裡可以添加自定義部署邏輯
+          echo "Staging deployment completed"
+
+      - name: Run staging tests
+        run: |
+          echo "🧪 Running staging tests..."
+          sleep 30
+          
+          # 檢查健康端點
+          if [ -n "${{ vars.STAGING_URL }}" ]; then
+            curl -f ${{ vars.STAGING_URL }}/health || echo "⚠️ Health check failed"
+            curl -f ${{ vars.STAGING_URL }}/ | grep -q "廣清宮" || echo "⚠️ App content check failed"
+          fi
+
+      - name: Notify staging deployment
+        if: success()
+        run: |
+          echo "✅ Staging deployment successful"
+          echo "🔗 URL: ${{ vars.STAGING_URL || 'https://staging.temple-accounting.com' }}"
+
+  # 部署到 Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-and-test, build-docker, deploy-staging]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://accounting.temple.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-files-${{ needs.build-and-test.outputs.version }}
+          path: dist/
+
+      - name: Deploy to Firebase Hosting (Production)
+        if: vars.FIREBASE_PROJECT_PRODUCTION
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRODUCTION }}'
+          projectId: ${{ vars.FIREBASE_PROJECT_PRODUCTION }}
+          channelId: live
+
+      - name: Deploy to custom production server
+        if: vars.PRODUCTION_SERVER
+        run: |
+          echo "🚀 Deploying to production server..."
+          
+          # 設定 SSH (如果需要)
+          if [ -n "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+            mkdir -p ~/.ssh
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan -H ${{ vars.PRODUCTION_SERVER }} >> ~/.ssh/known_hosts
+            
+            # 使用 rsync 部署
+            rsync -avz --delete dist/ ${{ vars.DEPLOY_USER }}@${{ vars.PRODUCTION_SERVER }}:${{ vars.DEPLOY_PATH }}
+            
+            # 重啟服務
+            ssh ${{ vars.DEPLOY_USER }}@${{ vars.PRODUCTION_SERVER }} "sudo systemctl reload nginx"
+          fi
+
+      - name: Run production tests
+        run: |
+          echo "🧪 Running production tests..."
+          sleep 60
+          
+          # 檢查生產環境
+          if [ -n "${{ vars.PRODUCTION_URL }}" ]; then
+            curl -f ${{ vars.PRODUCTION_URL }}/health || exit 1
+            curl -f ${{ vars.PRODUCTION_URL }}/ | grep -q "廣清宮" || exit 1
+            
+            # 檢查 HTTPS 安全標頭
+            curl -I ${{ vars.PRODUCTION_URL }}/ | grep -q "Strict-Transport-Security" || echo "⚠️ HSTS header missing"
+            curl -I ${{ vars.PRODUCTION_URL }}/ | grep -q "X-Content-Type-Options" || echo "⚠️ X-Content-Type-Options header missing"
+          fi
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: 廣清宮記帳軟體 ${{ github.ref }}
+          body: |
+            ## 🎉 廣清宮記帳軟體 ${{ github.ref }} 發布
+            
+            ### 📋 版本資訊
+            - **版本**: ${{ needs.build-and-test.outputs.version }}
+            - **建置編號**: ${{ needs.build-and-test.outputs.build-number }}
+            - **提交**: ${{ github.sha }}
+            - **發布時間**: ${{ github.event.head_commit.timestamp }}
+            
+            ### 🔗 連結
+            - [生產環境](https://accounting.temple.com)
+            - [使用文檔](https://github.com/${{ github.repository }}/blob/main/README.md)
+            
+            ### 📦 部署資訊
+            - Firebase Hosting: ✅
+            - Docker Image: ✅
+            - 健康檢查: ✅
+            
+            **完整變更日誌**: https://github.com/${{ github.repository }}/compare/v1.0.0...${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Notify production deployment
+        if: success()
+        run: |
+          echo "🎉 Production deployment successful!"
+          echo "📊 Version: ${{ needs.build-and-test.outputs.version }}"
+          echo "🔢 Build: ${{ needs.build-and-test.outputs.build-number }}"
+          echo "🔗 URL: ${{ vars.PRODUCTION_URL || 'https://accounting.temple.com' }}"
+
+  # 部署失敗處理
+  deployment-failure:
+    name: Handle Deployment Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: failure()
+    steps:
+      - name: Rollback procedures
+        run: |
+          echo "❌ Deployment failed!"
+          echo "🔄 Initiating rollback procedures..."
+          
+          # 這裡可以添加自動回滾邏輯
+          # 例如：恢復到上一個穩定版本
+          
+          echo "📧 Notifying development team..."
+          echo "📋 Please check deployment logs and take appropriate action."
+
+      - name: Create failure issue
+        if: github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 部署失敗 - ${context.sha.substring(0, 7)}`,
+              body: `## 部署失敗報告
+              
+              **提交**: ${context.sha}
+              **分支**: ${context.ref}
+              **時間**: ${new Date().toISOString()}
+              **工作流程**: ${context.workflow}
+              
+              請檢查 [工作流程日誌](${context.payload.repository.html_url}/actions/runs/${context.runId}) 以了解失敗原因。
+              
+              ### 建議行動
+              1. 檢查建置日誌
+              2. 驗證環境配置
+              3. 測試本地建置
+              4. 修復問題後重新部署
+              `,
+              labels: ['bug', 'deployment', 'urgent']
+            })
