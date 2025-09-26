@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入功能測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 登入功能修復測試</h1>
+        
+        <!-- Firebase 載入狀態 -->
+        <div class="test-section">
+            <h3>1. Firebase SDK 載入狀態</h3>
+            <div id="firebase-status" class="status info">檢查中...</div>
+            <button onclick="checkFirebaseStatus()">重新檢查</button>
+        </div>
+        
+        <!-- Firebase 雲端服務狀態 -->
+        <div class="test-section">
+            <h3>2. Firebase 雲端服務狀態</h3>
+            <div id="service-status" class="status info">檢查中...</div>
+            <button onclick="checkServiceStatus()">重新檢查</button>
+        </div>
+        
+        <!-- 登入功能測試 -->
+        <div class="test-section">
+            <h3>3. 登入功能測試</h3>
+            <div class="form-group">
+                <label>測試電子郵件:</label>
+                <input type="email" id="test-email" value="test@example.com" placeholder="輸入測試郵件">
+            </div>
+            <div class="form-group">
+                <label>測試密碼:</label>
+                <input type="password" id="test-password" value="123456" placeholder="輸入測試密碼">
+            </div>
+            <button onclick="testLogin()">測試登入</button>
+            <button onclick="testAnonymousLogin()">測試訪客登入</button>
+            <button onclick="testLogout()">測試登出</button>
+            <div id="login-status" class="status info">等待測試...</div>
+        </div>
+        
+        <!-- 錯誤日誌 -->
+        <div class="test-section">
+            <h3>4. 錯誤日誌</h3>
+            <div id="error-log" style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;">
+                等待日誌...
+            </div>
+            <button onclick="clearLog()">清除日誌</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase 雲端服務 -->
+    <script src="firebase-cloud-service.js"></script>
+
+    <script>
+        // 日誌功能
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        
+        function addToLog(type, message) {
+            const logElement = document.getElementById('error-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logElement.textContent += logEntry;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            addToLog('info', args.join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            addToLog('error', args.join(' '));
+        };
+        
+        console.warn = function(...args) {
+            originalConsoleWarn.apply(console, args);
+            addToLog('warn', args.join(' '));
+        };
+
+        // 檢查 Firebase SDK 狀態
+        function checkFirebaseStatus() {
+            const statusElement = document.getElementById('firebase-status');
+            
+            if (typeof firebase === 'undefined') {
+                statusElement.className = 'status error';
+                statusElement.textContent = '❌ Firebase SDK 未載入';
+                return false;
+            }
+            
+            const hasAuth = typeof firebase.auth === 'function';
+            const hasFirestore = typeof firebase.firestore === 'function';
+            
+            if (hasAuth && hasFirestore) {
+                statusElement.className = 'status success';
+                statusElement.textContent = '✅ Firebase SDK 載入成功 (Auth + Firestore)';
+                return true;
+            } else {
+                statusElement.className = 'status error';
+                statusElement.textContent = `❌ Firebase SDK 不完整 (Auth: ${hasAuth}, Firestore: ${hasFirestore})`;
+                return false;
+            }
+        }
+
+        // 檢查 Firebase 雲端服務狀態
+        function checkServiceStatus() {
+            const statusElement = document.getElementById('service-status');
+            
+            if (typeof window.firebaseCloud === 'undefined') {
+                statusElement.className = 'status error';
+                statusElement.textContent = '❌ Firebase 雲端服務未載入';
+                return false;
+            }
+            
+            const status = window.firebaseCloud.getStatus();
+            
+            if (status.isInitialized) {
+                statusElement.className = 'status success';
+                statusElement.textContent = `✅ Firebase 雲端服務正常 (已登入: ${status.isLoggedIn})`;
+            } else {
+                statusElement.className = 'status info';
+                statusElement.textContent = '⚠️ Firebase 雲端服務運行在模擬模式';
+            }
+            
+            return true;
+        }
+
+        // 測試登入
+        async function testLogin() {
+            const statusElement = document.getElementById('login-status');
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+            
+            if (!email || !password) {
+                statusElement.className = 'status error';
+                statusElement.textContent = '❌ 請輸入電子郵件和密碼';
+                return;
+            }
+            
+            statusElement.className = 'status info';
+            statusElement.textContent = '🔄 正在測試登入...';
+            
+            try {
+                const result = await window.firebaseCloud.loginUser(email, password);
+                
+                if (result.success) {
+                    statusElement.className = 'status success';
+                    statusElement.textContent = `✅ 登入測試成功: ${result.message}`;
+                    console.log('登入結果:', result);
+                } else {
+                    statusElement.className = 'status error';
+                    statusElement.textContent = `❌ 登入測試失敗: ${result.message}`;
+                    console.error('登入錯誤:', result);
+                }
+            } catch (error) {
+                statusElement.className = 'status error';
+                statusElement.textContent = `❌ 登入測試異常: ${error.message}`;
+                console.error('登入異常:', error);
+            }
+        }
+
+        // 測試訪客登入
+        async function testAnonymousLogin() {
+            const statusElement = document.getElementById('login-status');
+            
+            statusElement.className = 'status info';
+            statusElement.textContent = '🔄 正在測試訪客登入...';
+            
+            try {
+                const result = await window.firebaseCloud.loginAnonymously();
+                
+                if (result.success) {
+                    statusElement.className = 'status success';
+                    statusElement.textContent = `✅ 訪客登入測試成功: ${result.message}`;
+                    console.log('訪客登入結果:', result);
+                } else {
+                    statusElement.className = 'status error';
+                    statusElement.textContent = `❌ 訪客登入測試失敗: ${result.message}`;
+                    console.error('訪客登入錯誤:', result);
+                }
+            } catch (error) {
+                statusElement.className = 'status error';
+                statusElement.textContent = `❌ 訪客登入測試異常: ${error.message}`;
+                console.error('訪客登入異常:', error);
+            }
+        }
+
+        // 測試登出
+        async function testLogout() {
+            const statusElement = document.getElementById('login-status');
+            
+            statusElement.className = 'status info';
+            statusElement.textContent = '🔄 正在測試登出...';
+            
+            try {
+                const result = await window.firebaseCloud.logout();
+                
+                if (result.success) {
+                    statusElement.className = 'status success';
+                    statusElement.textContent = `✅ 登出測試成功: ${result.message}`;
+                    console.log('登出結果:', result);
+                } else {
+                    statusElement.className = 'status error';
+                    statusElement.textContent = `❌ 登出測試失敗: ${result.message}`;
+                    console.error('登出錯誤:', result);
+                }
+            } catch (error) {
+                statusElement.className = 'status error';
+                statusElement.textContent = `❌ 登出測試異常: ${error.message}`;
+                console.error('登出異常:', error);
+            }
+        }
+
+        // 清除日誌
+        function clearLog() {
+            document.getElementById('error-log').textContent = '日誌已清除...\n';
+        }
+
+        // 頁面載入時自動檢查
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                checkFirebaseStatus();
+                checkServiceStatus();
+            }, 1000);
+        });
+
+        // 監聽認證狀態變化
+        window.addEventListener('authStateChanged', (event) => {
+            const user = event.detail.user;
+            console.log('認證狀態變化:', user ? '已登入' : '未登入', user);
+        });
+    </script>
+</body>
+</html>
